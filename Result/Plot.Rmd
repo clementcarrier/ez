@@ -1,0 +1,21 @@
+Plot of some series
+========================================================
+
+Package nécessaire :
+```{r}
+require(ggplot2)
+require(reshape)
+```
+
+Chargement des données :
+```{r}
+load("vardata.R")
+```
+
+
+```{r}
+varm <- melt(complete,  id = 'time', variable_name = 'series')
+ggplot(complete$YWR, aes(time,value)) + geom_line() + facet_grid(series ~ .)
+
+```
+
