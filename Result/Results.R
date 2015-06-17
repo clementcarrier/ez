@@ -156,7 +156,7 @@ erstest2<-function(data){
   return(rbind(names(data),result))
 }
 
-
+fdf
 erstest2(dsubset)
 
 
