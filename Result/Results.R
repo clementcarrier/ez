@@ -1,35 +1,214 @@
 require(lassovar)
 require(ggplot2)
-require(reshape)
+require(reshape2)
+require(urca)
+require(MSBVAR)
 
-load("~/Documents/Stage VU/Todo/vardata.R")
+load("~/Documents/Stage VU/Todo/Result/vardata.R")
+#complete<-subset(vardataframe, select=c("YWR", "YER"))
+#complete<-subset(vardataframe[116:180,], select=c("YWR", "YER", "RCO", "GCR", "RIN", "XTR", "MTR", "URX", "POILU", "PCOMU", "HICP", "YED", "CPE", "STN", "LTN", "EEN", "M1" , "M3", "LIB", "LHO"))
+#complete<-subset(vardataframe[116:180,], select=c("YWR", "YER", "RCO", "GCR", "RIN"))
 
-complete<-subset(vardataframe, select=c("YWR", "YER", "RCO", "GCR", "RIN", "XTR", "MTR", "LNN", "URX", "POILU", "PCOMU", "HICP", "YED", "MTD", "CPE", "STN", "LTN", "EEN", "M1" , "M3", "LIB"))
+# I keep variables from Q4 1997
+subset<-subset(vardataframe[116:180,])
+
+# Plot
+
+var1<-subset[,1:5]
+var2<-subset[,6:10]
+var3<-subset[,11:15]
+var4<-subset[,16:20]
+var5<-subset[,21:26]
+
+var1$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+var2$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+var3$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+var4$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+var5$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+
+mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
+mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
+mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
+mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
+mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
+
+ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
 
 
-completets<-ts(complete,start=c(1970,1),frequency=4)
 
-id<-seq(1970, 2013.75, 0.25 )
-time<-data.frame(id)
+#Test de Racine unité ERS H0 : pas stationnaire
+# "YES" : there is a unit root
 
-varm <- melt(completets,  id = 'time', variable_name = 'series')
+erstest<-function(data){
+  result<-NULL
+  for (i in seq(1,dim(data)[2],1)){
+    ers<-ur.ers(data[,i], type = "P-test", model="trend", lag.max = 10)
+    stat<-ers@teststat
+    value5pc<-ers@cval[2]
+    result[i]<-stat>value5pc
+  }
+  return(rbind(names(data),result))
+}
 
-ggplot(completets, aes(time,value)) + geom_line() + facet_grid(series ~ .)
+
+dfglstest<-function(data){
+  result<-NULL
+  for (i in seq(1,dim(data)[2],1)){
+    ers<-ur.ers(data[,i], type = "DF-GLS", model="trend", lag.max = 2)
+    stat<-ers@teststat
+    value5pc<-ers@cval[2]
+    result[i]<-stat>value5pc
+  }
+  return(rbind(names(data),result))
+}
+
+
+test<-dfglstest(subset)
+dim(test)
 
 
 
-ggplot(complete$YWR, aes(time,value)) + geom_line() + facet_grid(series ~ .)
+# First difference of all series
+FDall<-function(data){
+dif<-matrix(0,nrow=dim(data)[1]-1,ncol=dim(data)[2])
+for (i in seq(1,dim(data)[2],1)){
+  dif[,i]<-diff(data[,i],lag=1)
+  colnames(dif)<-names(data)
+}
+return(dif)
+}
 
 
-lv<-lassovar(complete, lags=2)
+# First difference of non stationary series only
+FDnonstationary<-function(data){
+  dif<-matrix(0,nrow=dim(data)[1]-1,ncol=dim(data)[2])
+  for (i in seq(1,dim(data)[2],1)){
+    if (dfglstest(data)[2,i]==TRUE) {
+      dif[,i]<-diff(data[,i],lag=1)
+    }
+    else {
+      dif[,i]<-data[2:dim(data)[1],i]
+    }
+    colnames(dif)<-names(data)
+  }
+  return(dif)
+}
 
-Lasso estimation :
+partialDF<-FDnonstationary(subset)
+dsubset<-FDall(subset)
+dsubset<-data.frame(dsubset)
 
-# lasso estimation 
-require(lassovar)
-res<-lassovar(var[4:179,2:8],lags=10, ic="AIC", adaptive="lasso")
-res$coefficients
-nnzero(res$coefficients)
-summary(res)
+
+#Plot of FD
+
+var1<-dsubset[,1:5]
+var2<-dsubset[,6:10]
+var3<-dsubset[,11:15]
+var4<-dsubset[,16:20]
+var5<-dsubset[,21:26]
+
+var1$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+var2$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+var3$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+var4$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+var5$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+
+mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
+mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
+mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
+mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
+mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
+
+ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+
+
+
+
+# Test racine unité sur dif mais sans trend 
+dfglstest2<-function(data){
+  result<-NULL
+  for (i in seq(1,dim(data)[2],1)){
+    ers<-ur.ers(data[,i], type = "DF-GLS", model="constant", lag.max = 2)
+    stat<-ers@teststat
+    value5pc<-ers@cval[2]
+    result[i]<-stat>value5pc
+  }
+  return(rbind(names(data),result))
+}
+
+
+erstest2<-function(data){
+  result<-NULL
+  for (i in seq(1,dim(data)[2],1)){
+    ers<-ur.ers(data[,i], type = "P-test", model="constant", lag.max = 2)
+    stat<-ers@teststat
+    value5pc<-ers@cval[2]
+    result[i]<-stat>value5pc
+  }
+  return(rbind(names(data),result))
+}
+
+
+erstest2(dsubset)
+
+
+
+#Choix du nombre de lag
+
+lagchoice<-function(data,lagmax){
+  AIC<-NULL
+  HQ<-NULL
+  SC<-NULL
+  for (i in seq(1,lagmax,1)){
+    lv<-lassovar(data, lags=i)
+    cons<-lv$coefficients[1,]
+    coef<-lv$coefficients[-1,]
+    res<-lv$y-matrix(rep(1,dim(lv$y)[1]))%*%t(cons)-lv$x%*%coef
+    Sigma<-((dim(lv$y)[1])^-1)*(t(as.matrix(res))%*%as.matrix(res))
+    det<-det(Sigma)
+    AIC[i]<-log(det)+2*i*dim(data)[2]^2/dim(subset)[1]
+    HQ[i]<-log(det)+2*log(log(dim(data)[1]))*i*dim(data)[2]^2/dim(data)[1]
+    SC[i]<-log(det)+log(dim(data)[1])*i*dim(data)[2]^2/dim(data)[1]
+  }
+  return(rbind(AIC,HQ,SC))
+}
+
+lagchoice(subset,lagmax=10)
+
+
+
+subset<-subset(vardataframe[116:180,])
+#subsettrend<-subset(vardataframe[116:180,])
+
+
+require(dplyr)
+trend<-data.frame(seq(1,dim(subset)[1],1))
+lv<-lassovar(subset,exo=trend,lags=1, ic="AIC")
+lv2<-lassovar(subset,lags=4, ic="AIC", ex=trend)
+
+summary(lassovar(subset,lags=4, ic="AIC", ex=trend))
+summary(lassovar(subset,lags=4, ic="AIC"))
+#ne marche pas avec exo
+lassovar(subset,lags=4, ic="AIC", exo=trend)
+help(lassovar)
+
+subsettrend$trend<-rep(1:dim(subset)[1])
+lagchoice(subsettrend,10)
+
+#lagchoice(subset,10)
+#lagchoice(dsubset,10)
+
+
+
+
+
 
 

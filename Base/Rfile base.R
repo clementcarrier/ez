@@ -4,7 +4,7 @@ data <- read.csv("~/Documents/Stage VU/Todo/AWM/AWM18UP14.csv")
 
 #creation of the variable "compensation per employee" & "real consumption" & "real investment"
 data$CPE=data$WIN/data$LEN
-data$RCO=data$ITR/data$ITD
+data$RCO=data$PCR/data$PCD
 data$RIN=data$ITR/data$ITD
 
 
@@ -120,5 +120,6 @@ def<-c(rep(0,5),rep(3,2),1,0,1,rep(2,2),rep(0,7),1,rep(0,5),1)
 vardataframe<-rbind(nature,country,SeaAjus,def,vardataframe)
 
 
+setwd("~/Documents/Stage VU/Todo/Base")
 save(vardataframe,file="vardata.R")
 

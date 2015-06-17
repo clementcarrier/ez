@@ -1,47 +1,358 @@
-Plot of some series
+Stationnarity and choice of the lag number
 ========================================================
 
 Package nécessaire :
 
 ```r
+require(lassovar)
 require(ggplot2)
+require(reshape2)
+require(urca)
 ```
 
-```
-## Loading required package: ggplot2
-```
-
-```r
-require(reshape)
-```
-
-```
-## Loading required package: reshape
-```
-
-Chargement des données :
+Load the data and substract data from Q4 1997 :
 
 ```r
 load("vardata.R")
+subset<-subset(vardataframe[116:180,])
+```
+
+
+Il y a probablement beaucoup plus simple et rapide mais j'ai un peu galéré avec ggplot :
+
+```r
+var1<-subset[,1:5]
+var2<-subset[,6:10]
+var3<-subset[,11:15]
+var4<-subset[,16:20]
+var5<-subset[,21:26]
+
+var1$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+var2$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+var3$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+var4$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+var5$time<-seq(as.Date("1997/10/01"), as.Date("2013/12/31"), by = "quarter")
+
+
+mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
+mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
+mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
+mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
+mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
 ```
 
 
 
 ```r
-varm <- melt(var[4:179,],  id = 'time', variable_name = 'series')
+ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
+
+```r
+ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-2.png) 
+
+```r
+ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-3.png) 
+
+```r
+ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-4.png) 
+
+```r
+ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-5.png) 
+
+
+Test de Racine unité ERS H0 : pas stationnaire. 
+
+If "TRUE" : there is a unit root
+
+
+```r
+erstest<-function(data){
+  result<-NULL
+  for (i in seq(1,dim(data)[2],1)){
+    ers<-ur.ers(data[,i], type = "P-test", model="trend", lag.max = 10)
+    stat<-ers@teststat
+    value5pc<-ers@cval[2]
+    result[i]<-stat>value5pc
+  }
+  return(rbind(names(data),result))
+}
+
+
+dfglstest<-function(data){
+  result<-NULL
+  for (i in seq(1,dim(data)[2],1)){
+    ers<-ur.ers(data[,i], type = "DF-GLS", model="trend", lag.max = 2)
+    stat<-ers@teststat
+    value5pc<-ers@cval[2]
+    result[i]<-stat>value5pc
+  }
+  return(rbind(names(data),result))
+}
+```
+
+Results: 
+
+
+```r
+erstest(subset)
 ```
 
 ```
-## Error in var[4:179, ]: objet de type 'closure' non indiçable
+##        [,1]   [,2]    [,3]   [,4]    [,5]   [,6]   [,7]   [,8]   [,9]  
+##        "CPE"  "DJES"  "EEN"  "ESI"   "GCR"  "HICP" "LFI"  "LHO"  "LIB" 
+## result "TRUE" "FALSE" "TRUE" "FALSE" "TRUE" "TRUE" "TRUE" "TRUE" "TRUE"
+##        [,10]  [,11]   [,12]  [,13]  [,14]   [,15]  [,16]   [,17]   [,18]  
+##        "LNN"  "LTN"   "M1"   "M3"   "MTD"   "MTR"  "PCOMU" "POILU" "PPI"  
+## result "TRUE" "FALSE" "TRUE" "TRUE" "FALSE" "TRUE" "TRUE"  "TRUE"  "FALSE"
+##        [,19]  [,20]  [,21]   [,22]  [,23]  [,24]  [,25]  [,26] 
+##        "RCO"  "RIN"  "STN"   "URX"  "XTR"  "YED"  "YER"  "YWR" 
+## result "TRUE" "TRUE" "FALSE" "TRUE" "TRUE" "TRUE" "TRUE" "TRUE"
 ```
 
 ```r
-ggplot(complete$YWR, aes(time,value)) + geom_line() + facet_grid(series ~ .)
+dfglstest(subset)
 ```
 
 ```
-## Error in ggplot(complete$YWR, aes(time, value)): objet 'complete' introuvable
+##        [,1]   [,2]   [,3]   [,4]    [,5]   [,6]   [,7]   [,8]   [,9]  
+##        "CPE"  "DJES" "EEN"  "ESI"   "GCR"  "HICP" "LFI"  "LHO"  "LIB" 
+## result "TRUE" "TRUE" "TRUE" "FALSE" "TRUE" "TRUE" "TRUE" "TRUE" "TRUE"
+##        [,10]  [,11]   [,12]  [,13]  [,14]   [,15]  [,16]   [,17]   [,18] 
+##        "LNN"  "LTN"   "M1"   "M3"   "MTD"   "MTR"  "PCOMU" "POILU" "PPI" 
+## result "TRUE" "FALSE" "TRUE" "TRUE" "FALSE" "TRUE" "TRUE"  "TRUE"  "TRUE"
+##        [,19]  [,20]  [,21]  [,22]  [,23]  [,24]  [,25]  [,26] 
+##        "RCO"  "RIN"  "STN"  "URX"  "XTR"  "YED"  "YER"  "YWR" 
+## result "TRUE" "TRUE" "TRUE" "TRUE" "TRUE" "TRUE" "TRUE" "TRUE"
 ```
 
 
+Il a donc des racines unitaire presque pour toutes les variables :
+
+First difference of all series :
+
+```r
+FDall<-function(data){
+dif<-matrix(0,nrow=dim(data)[1]-1,ncol=dim(data)[2])
+for (i in seq(1,dim(data)[2],1)){
+  dif[,i]<-diff(data[,i],lag=1)
+  colnames(dif)<-names(data)
+}
+return(dif)
+}
+```
+
+
+First difference of non stationary series only
+
+```r
+FDnonstationary<-function(data){
+  dif<-matrix(0,nrow=dim(data)[1]-1,ncol=dim(data)[2])
+  for (i in seq(1,dim(data)[2],1)){
+    if (dfglstest(data)[2,i]==TRUE) {
+      dif[,i]<-diff(data[,i],lag=1)
+    }
+    else {
+      dif[,i]<-data[2:dim(data)[1],i]
+    }
+    colnames(dif)<-names(data)
+  }
+  return(dif)
+}
+```
+
+
+Je différencie l'ensemble des variables:
+
+```r
+dsubset<-FDall(subset)
+dsubset<-data.frame(dsubset)
+```
+
+Je plot les FD : 
+
+
+```r
+var1<-dsubset[,1:5]
+var2<-dsubset[,6:10]
+var3<-dsubset[,11:15]
+var4<-dsubset[,16:20]
+var5<-dsubset[,21:26]
+
+var1$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+var2$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+var3$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+var4$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+var5$time<-seq(as.Date("1998/01/01"), as.Date("2013/12/31"), by = "quarter")
+
+mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
+mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
+mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
+mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
+mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
+
+ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-1.png) 
+
+```r
+ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-2.png) 
+
+```r
+ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-3.png) 
+
+```r
+ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-4.png) 
+
+```r
+ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+```
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10-5.png) 
+
+Il y a de la saisonnalité ! Probablement que les test ne sont pas top.. 
+Peut être faudrait il faire une analyse plus fine des séries : SARIMA ? 
+
+
+On peut faire des tets de stationnarité sur les DF, cette fois sans composante TREND qui a été supprimée, mais uniquement avec une constante :
+
+
+```r
+dfglstest2<-function(data){
+  result<-NULL
+  for (i in seq(1,dim(data)[2],1)){
+    ers<-ur.ers(data[,i], type = "DF-GLS", model="constant", lag.max = 8)
+    stat<-ers@teststat
+    value5pc<-ers@cval[2]
+    result[i]<-stat>value5pc
+  }
+  return(rbind(names(data),result))
+}
+
+
+erstest2<-function(data){
+  result<-NULL
+  for (i in seq(1,dim(data)[2],1)){
+    ers<-ur.ers(data[,i], type = "P-test", model="constant", lag.max = 8)
+    stat<-ers@teststat
+    value5pc<-ers@cval[2]
+    result[i]<-stat>value5pc
+  }
+  return(rbind(names(data),result))
+}
+```
+
+
+
+
+
+
+
+Choix du nombre de lag :
+
+```r
+lagchoice<-function(data,lagmax){
+  AIC<-NULL
+  HQ<-NULL
+  SC<-NULL
+  for (i in seq(1,lagmax,1)){
+    lv<-lassovar(data, lags=i)
+    cons<-lv$coefficients[1,]
+    coef<-lv$coefficients[-1,]
+    res<-lv$y-matrix(rep(1,dim(lv$y)[1]))%*%t(cons)-lv$x%*%coef
+    Sigma<-((dim(lv$y)[1])^-1)*(t(as.matrix(res))%*%as.matrix(res))
+    det<-det(Sigma)
+    AIC[i]<-log(det)+2*i*dim(data)[2]^2/dim(subset)[1]
+    HQ[i]<-log(det)+2*log(log(dim(data)[1]))*i*dim(data)[2]^2/dim(data)[1]
+    SC[i]<-log(det)+log(dim(data)[1])*i*dim(data)[2]^2/dim(data)[1]
+  }
+  return(rbind(AIC,HQ,SC))
+}
+```
+
+Pour prendre en compte une composante TREND dans le var : 
+
+```r
+trend<-data.frame(seq(1,dim(subset)[1],1))
+```
+
+
+
+Results :
+
+
+```r
+lassovar(subset,lags=4, ic="AIC", ex=trend)
+```
+
+Marche alors que : 
+
+
+```r
+lassovar(subset,lags=4, ic="AIC", exo=trend)
+```
+
+```
+## Error in t(aaply(exo, 2, dplyr::lag, k = 1)): impossible de trouver la fonction "aaply"
+```
+
+Ne marche pas ...!??
+
+
+```r
+lagchoice(subset,lagmax=10)
+```
+
+```
+##          [,1]      [,2]       [,3]       [,4]      [,5]      [,6]
+## AIC -166.4723 -146.5089 -124.69013 -104.60447 -85.33966 -66.24023
+## HQ  -157.5498 -128.6638  -97.92256  -68.91437 -40.72703 -12.70508
+## SC  -143.8587 -101.2816  -56.84925  -14.14996  27.72848  69.44154
+##          [,7]      [,8]       [,9]     [,10]
+## AIC -46.24733 -26.81603  -7.798507  10.46323
+## HQ   16.21035  44.56418  72.504225  99.68849
+## SC  112.04806 154.09300 195.724142 236.59951
+```
+
+
+On choisit 1 seul lag à partir des trois critères (probablement car les séries ont une racine unitaire)
+
+
+```r
+lagchoice(dsubset,10)
+```
+
+```
+##          [,1]      [,2]       [,3]       [,4]       [,5]       [,6]
+## AIC -165.4118 -147.8063 -134.51117 -142.58223 -178.65678 -175.03041
+## HQ  -156.1035 -129.1896 -106.58617 -105.34890 -132.11511 -119.18041
+## SC  -142.2836 -101.5499  -65.12657  -50.06942  -63.01577  -36.26119
+##            [,7]       [,8]       [,9]      [,10]
+## AIC -159.534929 -147.85874 -129.48982 -115.43483
+## HQ   -94.376596  -73.39207  -45.71482  -22.35149
+## SC     2.362489   37.16688   78.66400  115.84720
+```
 
