@@ -4,7 +4,8 @@ require(reshape2)
 require(urca)
 require(MSBVAR)
 
-load("~/Documents/Stage VU/Todo/Result/vardata.R")
+#load("~/Documents/Stage VU/Todo/Result/vardata.R")
+load("vardata.R")
 #complete<-subset(vardataframe, select=c("YWR", "YER"))
 #complete<-subset(vardataframe[116:180,], select=c("YWR", "YER", "RCO", "GCR", "RIN", "XTR", "MTR", "URX", "POILU", "PCOMU", "HICP", "YED", "CPE", "STN", "LTN", "EEN", "M1" , "M3", "LIB", "LHO"))
 #complete<-subset(vardataframe[116:180,], select=c("YWR", "YER", "RCO", "GCR", "RIN"))
@@ -185,11 +186,11 @@ lagchoice(subset,lagmax=10)
 
 lagchoice(dsubset,lagmax=10)
 
-#subset<-subset(vardataframe[116:180,])
-#subsettrend<-subset(vardataframe[116:180,])
-#trend<-seq(1,dim(subset)[1],1)
-#trend<-data.frame(seq(1,dim(subset)[1],1))
-#lv2<-lassovar(subset,lags=1, ic="AIC", exo=trend)
+subset<-subset(vardataframe[116:180,])
+subsettrend<-subset(vardataframe[116:180,])
+trend<-seq(1,dim(subset)[1],1)
+trend<-data.frame(seq(1,dim(subset)[1],1))
+lv2<-lassovar(subset,lags=1, ic="AIC", exo=trend)
 
 
 
