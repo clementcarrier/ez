@@ -1,0 +1,161 @@
+
+\documentclass[11pt,oneside, a4paper]{amsart}
+\usepackage{natbib}
+
+\usepackage{amsbsy,amsmath}
+\usepackage{amssymb,amsfonts}
+\usepackage{bbm}%give 1 with dbl vertical bar 
+\usepackage{booktabs,url,enumerate}
+\usepackage{color,xcolor,colortbl}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{rotating,graphicx,lscape}
+\usepackage{commath}
+\usetikzlibrary{arrows,positioning} 
+\usepackage[hypcap]{caption}
+\newcommand{\sgn}{\mathrm{sign}}
+\usepackage{setspace}
+
+% bold rows
+\usepackage{array}
+\newcolumntype{$}{>{\global\let\currentrowstyle\relax}}
+\newcolumntype{^}{>{\currentrowstyle}}
+\newcommand{\rowstyle}[1]{\gdef\currentrowstyle{#1}%
+  #1\ignorespaces
+}
+
+% Invisible table columns!
+\newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}% Properly placed sideways table with asmart class. 
+
+\setlength\rotFPtop{0pt plus 1fil} 
+
+
+\usepackage[top=1.5cm, bottom=1.5cm, left=3.0cm, right=3.0cm]{geometry}
+
+\DeclareMathOperator{\Med}{\mathbb{M}ed}
+\DeclareMathOperator{\Mean}{\mathbb{M}ean}
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\nid}{NID}
+\DeclareMathOperator{\N}{\mathcal{N}}
+\DeclareMathOperator{\corr}{corr}
+\DeclareMathOperator{\diag}{diag}
+\onehalfspace
+
+
+\definecolor{LightRed}{rgb}{1,.88,.88}
+\definecolor{LightBlue}{rgb}{.88,.88,1}
+\definecolor{LightGreen}{rgb}{.88,1,.88}
+
+\newtheorem{theorem}{Theorem}
+\begin{document}
+	
+\title{Some notes on VAR models for the EZ.}   
+\author{LAFC}
+\date{\today}
+\maketitle
+
+Define a set of endogenous variables $Y_t=[y_{1t},...,y_{k_Y t}]$, $t=1,...,T$, and define a set of exogenous variables $X_t$ stored in vectors of dimension $1\times k_Y$ and $1\times k_X$, respectively. Note that $Y_t$ could be the first difference of some variables, I use this notation for the sake of generality. Let $D_t$ be the vector of deterministic components of the model. $D_t$ could contain an intercept, a linear trend, or dummies. Also define $Z_t'=[Y_{t-1}',...,Y_{t-p}',X_{t}',D_t']$. The main model we consider is a VARX(p) of the form
+\begin{align}
+ Y_t &= D_t^* + \sum_{l=1}^p  Y_{t-l}A_l^* + X_t B^* + \epsilon_t,\nonumber\\
+    &= D_t^* + Z_t \Gamma^* + \epsilon_t^*,\nonumber\\
+ y_{it}&= d_{it}^* + Z_{t} \gamma_i^* + \epsilon_{it}^*,\label{eq:var}
+\end{align}
+The parameter matrix $\Gamma^*$ is of dimensions $ k_Y \times \left(pk_Y+k_X (:=k) \right)$. The VAR is estimated equation-by-equation both to speed up computations and to adapt the penalty to the variance in each equation. A possible exception is if using the group Lasso for lag selection.   
+
+
+\section*{Estimation}
+
+\subsection*{Lasso}
+The objective function of the Lasso is given by 
+\begin{align}
+L(\gamma_{i})=\frac{1}{T}\enVert{y_{i}-d_{it}-Z\gamma_{i}}^2+2\lambda_T\enVert{\gamma_{i}}_{\ell_1}\label{eq:obj}.
+\end{align}
+
+The model is estimated equation-by-equation and the penalty parameter is selected by BIC among those on the path selected by \texttt{glmnet}. \texttt{Lassovar} takes care of this part.  
+
+\subsection*{Adaptive Lasso}
+
+The objective function of the adaptive Lasso is given by 
+\begin{align}
+L(\gamma_{i})=\frac{1}{T}\enVert{y_{i}-d_{it}-Z\gamma_{i}}^2+2\lambda_T\sum_{j=1}^{k}w_{ij}\gamma_{ij}\label{eq:objada}.
+\end{align}
+where the adaptive weights can be given by $w_{ij}=\frac{1}{\hat\gamma_{ij}}$ where $\hat\gamma_{ij}$ is some initial estimator of $\gamma^*_{ij}$. If $\hat\gamma_{ij}=0$, variable $j$ is excluded from equation $i$ before estimating the adaptive Lasso. OLS or the Lasso are fine initial estimators, but they both have weaknesses. The risk of misclassification for the Lasso (excluding a relevant variable) and the poor quality of the estimates if $k$ is close to $T$.    
+
+
+
+\section*{Shock response}
+
+Consider a VAR(1) in difference where the parameters have been estimated:
+\begin{align}
+\Delta Y_t &= \Delta Y_{t-1} \hat A + \epsilon_t,\nonumber
+\end{align}
+
+To compute the response to an exogenous shock of size $s$ to the first variable in $Y$, construct the vector $\delta =[s,0,...,0]$. The response at after $h$ periods is given by $\delta \hat A^h$. 
+\begin{itemize}
+\item For models with multiple lags the companion form (or simply recursive computations) can be used.
+\item For models with exogenous variables, at path for the exogenous variables has to be specified. In general it should be equal to zero or to a random walk forecast, at least in periods following an initial shock. 
+\item The deterministics can be omitted. 
+\item For VECM models, things are more complicated but not much more difficult.    
+\end{itemize}
+
+
+\section*{Conditional forecasts}
+
+The options so far:
+\begin{itemize}
+\item Create a model for the exogenous variable. 
+\item Use na\"{i}ve methods (i.e. RW).
+\item Compute prediction density for the exogenous variable and plug in the model. Gaussian + linear = Gaussian.
+\item Condition on true value. 
+\end{itemize}
+
+
+
+\section*{Some tests}
+
+
+<<ezdata,cache=TRUE>>=
+library(lassovar)
+library(ggplot2)
+load('../Result/vardata')
+# loadind and subseting the data
+dat <- data.frame(vardataframe[116:180, c(1,2,6,11,13,17,8,24) ])
+# differentiating
+difdat <- tail(dat,-1) - head(dat,-1)
+
+@
+
+<<var1,dependson='ezdata',cache=TRUE>>=
+# estimate a VAR(1)
+lv_lev<-lassovar(dat,lags=1, ic="BIC")
+summary(lv_lev)
+lv_lev_trend<-lassovar(dat,lags=1, ic="BIC",exo=seq(1:nrow(dat)))
+summary(lv_lev_trend)
+lv_dif<-lassovar(difdat,lags=1, ic="BIC")
+summary(lv_dif)
+
+@
+
+
+<<plotar,dependson='var1',cache=TRUE>>=
+# printing the diagonal of the parameter matrix
+ar1 <- cbind(diag(coef(lv_lev)[-1,]),
+             diag(coef(lv_lev_trend)[2:(1+ncol(dat)),]),
+             diag(coef(lv_dif)[-1,]))
+
+
+rownames(ar1) <- lv_lev$var.names
+colnames(ar1) <- c('level','level + trend','diff')
+mar1 <- melt(ar1)
+
+ggplot(mar1,aes(x=Var1,y=value,colour=Var2,shape=Var2)) +
+  geom_point(size=3) + theme_minimal()
+@
+
+
+The parameters fo the VAR in level are pretty close to 1. The trend is usually set to zero by the Lasso. It should probably not be penalized anyway. In the model in difference, the estimator often does not select an equation's own lag in most cases. weird. 
+
+
+\end{document}
