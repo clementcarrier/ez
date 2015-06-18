@@ -167,7 +167,7 @@ lagchoice<-function(data,lagmax){
   AIC<-NULL
   HQ<-NULL
   SC<-NULL
-  for (i in seq(1,lagmax,1)){
+  for (i in 1:lagmax){
     lv<-lassovar(data, lags=i)
     cons<-lv$coefficients[1,]
     coef<-lv$coefficients[-1,]
@@ -183,32 +183,39 @@ lagchoice<-function(data,lagmax){
 
 lagchoice(subset,lagmax=10)
 
+lagchoice(dsubset,lagmax=10)
 
-
-subset<-subset(vardataframe[116:180,])
+#subset<-subset(vardataframe[116:180,])
 #subsettrend<-subset(vardataframe[116:180,])
+#trend<-seq(1,dim(subset)[1],1)
+#trend<-data.frame(seq(1,dim(subset)[1],1))
+#lv2<-lassovar(subset,lags=1, ic="AIC", exo=trend)
 
 
-require(dplyr)
-trend<-data.frame(seq(1,dim(subset)[1],1))
-lv<-lassovar(subset,exo=trend,lags=1, ic="AIC")
-lv2<-lassovar(subset,lags=4, ic="AIC", ex=trend)
 
-summary(lassovar(subset,lags=4, ic="AIC", ex=trend))
-summary(lassovar(subset,lags=4, ic="AIC"))
-#ne marche pas avec exo
-lassovar(subset,lags=4, ic="AIC", exo=trend)
+
+
+# Estimation of the VAR 
 help(lassovar)
+lv<-lassovar(dsubset,lags=1)
+coef<-lv$coefficients[-1,]
+coef
+dim(subset)
 
-subsettrend$trend<-rep(1:dim(subset)[1])
-lagchoice(subsettrend,10)
+forecast<-function(data,lag,horizon,choc){
+  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon)
+  lv<-lassovar(dat=data,lags=lag, ic="BIC")
+  coef<-lv$coefficients[-1,]
+  for (i in 1:horizon){
+    fore[,i]<-coef^i%*%choc
+  }
+return(fore)
+}
 
-#lagchoice(subset,10)
-#lagchoice(dsubset,10)
+oilprice<-matrix(c(rep(0,16),1,rep(0,9)))
+IRF<-forecast(dsubset,1,16,oilprice)
 
-
-
-
+plot(IRF[17,])
 
 
 
