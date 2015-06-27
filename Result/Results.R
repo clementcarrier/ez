@@ -69,7 +69,7 @@ dfglstest<-function(data){
 
 
 test<-dfglstest(subset)
-dim(test)
+
 
 
 
@@ -100,6 +100,7 @@ FDnonstationary<-function(data){
 }
 
 partialDF<-FDnonstationary(subset)
+
 dsubset<-FDall(subset)
 dsubset<-data.frame(dsubset)
 
@@ -183,15 +184,15 @@ lagchoice<-function(data,lagmax){
 }
 
 lagchoice(subset,lagmax=10)
-
 lagchoice(dsubset,lagmax=10)
 
-subset<-subset(vardataframe[116:180,])
-subsettrend<-subset(vardataframe[116:180,])
-trend<-seq(1,dim(subset)[1],1)
-trend<-data.frame(seq(1,dim(subset)[1],1))
-lv2<-lassovar(subset,lags=1, ic="AIC", exo=trend)
+#subset<-subset(vardataframe[116:180,])
+#subsettrend<-subset(vardataframe[116:180,])
+#trend<-seq(1,dim(subset)[1],1)
+#trend<-data.frame(seq(1,dim(subset)[1],1))
 
+#lv2<-lassovar(subset,lags=1, ic="AIC", exo=trend)
+summary(lv2)
 
 
 
@@ -199,24 +200,51 @@ lv2<-lassovar(subset,lags=1, ic="AIC", exo=trend)
 # Estimation of the VAR 
 help(lassovar)
 lv<-lassovar(dsubset,lags=1)
+summary(lv)
 coef<-lv$coefficients[-1,]
 coef
-dim(subset)
+
 
 forecast<-function(data,lag,horizon,choc){
   fore<-matrix(0,nrow=dim(data)[2],ncol=horizon)
   lv<-lassovar(dat=data,lags=lag, ic="BIC")
-  coef<-lv$coefficients[-1,]
+  coeff<-lv$coefficients[-1,]
   for (i in 1:horizon){
-    fore[,i]<-coef^i%*%choc
+    fore[,i]<-coeff^i%*%choc
   }
-return(fore)
+return(t(fore))
 }
 
 oilprice<-matrix(c(rep(0,16),1,rep(0,9)))
-IRF<-forecast(dsubset,1,16,oilprice)
+HICP<-matrix(c(rep(0,5),1,rep(0,20)))
 
-plot(IRF[17,])
+IRF<-data.frame(forecast(dsubset,1,16,HICP))
+colnames(IRF)<-names(dsubset)
+
+var1<-IRF[,1:5]
+var2<-IRF[,6:10]
+var3<-IRF[,11:15]
+var4<-IRF[,16:20]
+var5<-IRF[,21:26]
+
+var1$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+var2$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+var3$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+var4$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+var5$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+
+mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
+mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
+mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
+mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
+mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
+
+ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+
 
 
 
