@@ -1,54 +1,5 @@
 
-\documentclass[11pt,oneside, a4paper]{amsart}\usepackage[]{graphicx}\usepackage[]{color}
-%% maxwidth is the original width if it is less than linewidth
-%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
-\makeatletter
-\def\maxwidth{ %
-  \ifdim\Gin@nat@width>\linewidth
-    \linewidth
-  \else
-    \Gin@nat@width
-  \fi
-}
-\makeatother
-
-\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
-\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
-\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
-\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
-\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
-\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
-\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
-\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
-\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
-\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
-
-\usepackage{framed}
-\makeatletter
-\newenvironment{kframe}{%
- \def\at@end@of@kframe{}%
- \ifinner\ifhmode%
-  \def\at@end@of@kframe{\end{minipage}}%
-  \begin{minipage}{\columnwidth}%
- \fi\fi%
- \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
- \colorbox{shadecolor}{##1}\hskip-\fboxsep
-     % There is no \\@totalrightmargin, so:
-     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
- \MakeFramed {\advance\hsize-\width
-   \@totalleftmargin\z@ \linewidth\hsize
-   \@setminipage}}%
- {\par\unskip\endMakeFramed%
- \at@end@of@kframe}
-\makeatother
-
-\definecolor{shadecolor}{rgb}{.97, .97, .97}
-\definecolor{messagecolor}{rgb}{0, 0, 0}
-\definecolor{warningcolor}{rgb}{1, 0, 1}
-\definecolor{errorcolor}{rgb}{1, 0, 0}
-\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
-
-\usepackage{alltt}
+\documentclass[11pt,oneside, a4paper]{amsart}
 \usepackage{natbib}
 
 \usepackage{amsbsy,amsmath}
@@ -98,8 +49,9 @@
 \definecolor{LightGreen}{rgb}{.88,1,.88}
 
 \newtheorem{theorem}{Theorem}
-\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\usepackage{Sweave}
 \begin{document}
+\input{notes-concordance}
 	
 \title{Some notes on VAR models for the EZ.}   
 \author{LAFC}
@@ -166,122 +118,116 @@ The options so far:
 \section*{Some tests}
 
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlkwd{library}\hlstd{(lassovar)}
-\hlkwd{library}\hlstd{(ggplot2)}
-\hlkwd{load}\hlstd{(}\hlstr{'../Result/vardata'}\hlstd{)}
-\hlcom{# loadind and subseting the data}
-\hlstd{dat} \hlkwb{<-} \hlkwd{data.frame}\hlstd{(vardataframe[}\hlnum{116}\hlopt{:}\hlnum{180}\hlstd{,} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,}\hlnum{6}\hlstd{,}\hlnum{11}\hlstd{,}\hlnum{13}\hlstd{,}\hlnum{17}\hlstd{,}\hlnum{8}\hlstd{,}\hlnum{24}\hlstd{) ])}
-\hlcom{# differentiating}
-\hlstd{difdat} \hlkwb{<-} \hlkwd{tail}\hlstd{(dat,}\hlopt{-}\hlnum{1}\hlstd{)} \hlopt{-} \hlkwd{head}\hlstd{(dat,}\hlopt{-}\hlnum{1}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\end{knitrout}
+\begin{Schunk}
+\begin{Sinput}
+> library(lassovar)
+> library(ggplot2)
+> library(reshape2)
+> load('../Result/vardata')
+> # loadind and subseting the data
+> dat <- data.frame(vardataframe[116:180, c(1,2,6,11,13,17,8,24) ])
+> # differentiating
+> difdat <- tail(dat,-1) - head(dat,-1)
+> 
+\end{Sinput}
+\end{Schunk}
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlcom{# estimate a VAR(1)}
-\hlstd{lv_lev}\hlkwb{<-}\hlkwd{lassovar}\hlstd{(dat,}\hlkwc{lags}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{ic}\hlstd{=}\hlstr{"BIC"}\hlstd{)}
-\hlkwd{summary}\hlstd{(lv_lev)}
-\end{alltt}
-\begin{verbatim}
-## Call:
-## lassovar(dat = dat, lags = 1, ic = "BIC")
-## 
-## Model estimated equation by equation
-## Selection criterion: BIC
-## Estimator: Lasso
-## Dimensions: T = 64  N = 8
-## 
-## Total number of variables selected:26 (40.625% of candidates)
-## [1] "Model summary statistics:"
-##            Lambda non-zero    resid var
-## CPE   0.009137410        3 1.679413e-04
-## DJES  0.047738176        3 7.856802e+01
-## HICP  0.002310290        4 2.891006e-04
-## LTN   0.006771786        3 6.916725e-02
-## M3    0.014432675        3 1.286696e-03
-## POILU 0.037676144        4 2.943369e-01
-## LHO   0.018900280        1 1.011330e-03
-## YED   0.007223302        5 1.002183e-04
-\end{verbatim}
-\begin{alltt}
-\hlstd{lv_lev_trend}\hlkwb{<-}\hlkwd{lassovar}\hlstd{(dat,}\hlkwc{lags}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{ic}\hlstd{=}\hlstr{"BIC"}\hlstd{,}\hlkwc{exo}\hlstd{=}\hlkwd{seq}\hlstd{(}\hlnum{1}\hlopt{:}\hlkwd{nrow}\hlstd{(dat)))}
-\hlkwd{summary}\hlstd{(lv_lev_trend)}
-\end{alltt}
-\begin{verbatim}
-## Call:
-## lassovar(dat = dat, exo = seq(1:nrow(dat)), lags = 1, ic = "BIC")
-## 
-## Model estimated equation by equation
-## Selection criterion: BIC
-## Estimator: Lasso
-## Dimensions: T = 64  N = 8
-## 
-## Total number of variables selected:30 (41.66667% of candidates)
-## [1] "Model summary statistics:"
-##            Lambda non-zero    resid var
-## CPE   0.009137410        4 1.667344e-04
-## DJES  0.052392590        4 7.243895e+01
-## HICP  0.002310290        5 2.821701e-04
-## LTN   0.006771786        3 6.916725e-02
-## M3    0.014432675        3 1.286696e-03
-## POILU 0.009332668        5 2.867100e-01
-## LHO   0.018900280        1 1.011330e-03
-## YED   0.007223302        5 1.002183e-04
-\end{verbatim}
-\begin{alltt}
-\hlstd{lv_dif}\hlkwb{<-}\hlkwd{lassovar}\hlstd{(difdat,}\hlkwc{lags}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{ic}\hlstd{=}\hlstr{"BIC"}\hlstd{)}
-\hlkwd{summary}\hlstd{(lv_dif)}
-\end{alltt}
-\begin{verbatim}
-## Call:
-## lassovar(dat = difdat, lags = 1, ic = "BIC")
-## 
-## Model estimated equation by equation
-## Selection criterion: BIC
-## Estimator: Lasso
-## Dimensions: T = 63  N = 8
-## 
-## Total number of variables selected:16 (25% of candidates)
-## [1] "Model summary statistics:"
-##             Lambda non-zero    resid var
-## CPE   0.0024551858        0 8.912461e-05
-## DJES  1.8958393270        2 8.264576e+01
-## HICP  0.0014289972        4 2.665823e-04
-## LTN   0.0778170470        0 8.896670e-02
-## M3    0.0009786965        6 8.803950e-04
-## POILU 0.1861160585        0 3.695596e-01
-## LHO   0.0029187219        2 2.666321e-04
-## YED   0.0014462239        2 4.939361e-05
-\end{verbatim}
-\end{kframe}
-\end{knitrout}
+\begin{Schunk}
+\begin{Sinput}
+> # estimate a VAR(1)
+> lv_lev<-lassovar(dat,lags=1, ic="BIC")
+> summary(lv_lev)
+\end{Sinput}
+\begin{Soutput}
+Call:
+lassovar(dat = dat, lags = 1, ic = "BIC")
 
+Model estimated equation by equation
+Selection criterion: BIC
+Estimator: Lasso
+Dimensions: T = 64  N = 8
 
-\begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-\begin{alltt}
-\hlcom{# printing the diagonal of the parameter matrix}
-\hlstd{ar1} \hlkwb{<-} \hlkwd{cbind}\hlstd{(}\hlkwd{diag}\hlstd{(}\hlkwd{coef}\hlstd{(lv_lev)[}\hlopt{-}\hlnum{1}\hlstd{,]),}
-             \hlkwd{diag}\hlstd{(}\hlkwd{coef}\hlstd{(lv_lev_trend)[}\hlnum{2}\hlopt{:}\hlstd{(}\hlnum{1}\hlopt{+}\hlkwd{ncol}\hlstd{(dat)),]),}
-             \hlkwd{diag}\hlstd{(}\hlkwd{coef}\hlstd{(lv_dif)[}\hlopt{-}\hlnum{1}\hlstd{,]))}
+Total number of variables selected:26 (40.625% of candidates)
+[1] "Model summary statistics:"
+           Lambda non-zero    resid var
+CPE   0.009137410        3 1.679413e-04
+DJES  0.047738176        3 7.856802e+01
+HICP  0.002310290        4 2.891006e-04
+LTN   0.006771786        3 6.916725e-02
+M3    0.014432675        3 1.286696e-03
+POILU 0.037676144        4 2.943369e-01
+LHO   0.018900280        1 1.011330e-03
+YED   0.007223302        5 1.002183e-04
+\end{Soutput}
+\begin{Sinput}
+> lv_lev_trend<-lassovar(dat,lags=1, ic="BIC",exo=seq(1:nrow(dat)))
+> summary(lv_lev_trend)
+\end{Sinput}
+\begin{Soutput}
+Call:
+lassovar(dat = dat, exo = seq(1:nrow(dat)), lags = 1, ic = "BIC")
+
+Model estimated equation by equation
+Selection criterion: BIC
+Estimator: Lasso
+Dimensions: T = 64  N = 8
+
+Total number of variables selected:30 (41.66667% of candidates)
+[1] "Model summary statistics:"
+           Lambda non-zero    resid var
+CPE   0.009137410        4 1.667344e-04
+DJES  0.052392590        4 7.243895e+01
+HICP  0.002310290        5 2.821701e-04
+LTN   0.006771786        3 6.916725e-02
+M3    0.014432675        3 1.286696e-03
+POILU 0.009332668        5 2.867100e-01
+LHO   0.018900280        1 1.011330e-03
+YED   0.007223302        5 1.002183e-04
+\end{Soutput}
+\begin{Sinput}
+> lv_dif<-lassovar(difdat,lags=1, ic="BIC")
+> summary(lv_dif)
+\end{Sinput}
+\begin{Soutput}
+Call:
+lassovar(dat = difdat, lags = 1, ic = "BIC")
+
+Model estimated equation by equation
+Selection criterion: BIC
+Estimator: Lasso
+Dimensions: T = 63  N = 8
+
+Total number of variables selected:16 (25% of candidates)
+[1] "Model summary statistics:"
+            Lambda non-zero    resid var
+CPE   0.0024551858        0 8.912461e-05
+DJES  1.8958393270        2 8.264576e+01
+HICP  0.0014289972        4 2.665823e-04
+LTN   0.0778170470        0 8.896670e-02
+M3    0.0009786965        6 8.803950e-04
+POILU 0.1861160585        0 3.695596e-01
+LHO   0.0029187219        2 2.666321e-04
+YED   0.0014462239        2 4.939361e-05
+\end{Soutput}
+\begin{Sinput}
+> 
+\end{Sinput}
+\end{Schunk}
 
 
-\hlkwd{rownames}\hlstd{(ar1)} \hlkwb{<-} \hlstd{lv_lev}\hlopt{$}\hlstd{var.names}
-\hlkwd{colnames}\hlstd{(ar1)} \hlkwb{<-} \hlkwd{c}\hlstd{(}\hlstr{'level'}\hlstd{,}\hlstr{'level + trend'}\hlstd{,}\hlstr{'diff'}\hlstd{)}
-\hlstd{mar1} \hlkwb{<-} \hlkwd{melt}\hlstd{(ar1)}
-
-\hlkwd{ggplot}\hlstd{(mar1,}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=Var1,}\hlkwc{y}\hlstd{=value,}\hlkwc{colour}\hlstd{=Var2,}\hlkwc{shape}\hlstd{=Var2))} \hlopt{+}
-  \hlkwd{geom_point}\hlstd{(}\hlkwc{size}\hlstd{=}\hlnum{3}\hlstd{)} \hlopt{+} \hlkwd{theme_minimal}\hlstd{()}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/plotar-1} 
-
-\end{knitrout}
+\begin{Schunk}
+\begin{Sinput}
+> # printing the diagonal of the parameter matrix
+> ar1 <- cbind(diag(coef(lv_lev)[-1,]),
++              diag(coef(lv_lev_trend)[2:(1+ncol(dat)),]),
++              diag(coef(lv_dif)[-1,]))
+> rownames(ar1) <- lv_lev$var.names
+> colnames(ar1) <- c('level','level + trend','diff')
+> mar1 <- melt(ar1)
+> ggplot(mar1,aes(x=Var1,y=value,colour=Var2,shape=Var2)) +
++   geom_point(size=3) + theme_minimal()
+\end{Sinput}
+\end{Schunk}
 
 
 The parameters fo the VAR in level are pretty close to 1. The trend is usually set to zero by the Lasso. It should probably not be penalized anyway. In the model in difference, the estimator often does not select an equation's own lag in most cases. weird. 

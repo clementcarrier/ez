@@ -50,6 +50,7 @@
 
 \newtheorem{theorem}{Theorem}
 \begin{document}
+\SweaveOpts{concordance=TRUE}
 	
 \title{Some notes on VAR models for the EZ.}   
 \author{LAFC}
@@ -119,6 +120,7 @@ The options so far:
 <<ezdata,cache=TRUE>>=
 library(lassovar)
 library(ggplot2)
+library(reshape2)
 load('../Result/vardata')
 # loadind and subseting the data
 dat <- data.frame(vardataframe[116:180, c(1,2,6,11,13,17,8,24) ])
