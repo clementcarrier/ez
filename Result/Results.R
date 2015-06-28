@@ -5,10 +5,8 @@ require(urca)
 require(MSBVAR)
 
 #load("~/Documents/Stage VU/Todo/Result/vardata.R")
-load("vardata.R")
-#complete<-subset(vardataframe, select=c("YWR", "YER"))
-#complete<-subset(vardataframe[116:180,], select=c("YWR", "YER", "RCO", "GCR", "RIN", "XTR", "MTR", "URX", "POILU", "PCOMU", "HICP", "YED", "CPE", "STN", "LTN", "EEN", "M1" , "M3", "LIB", "LHO"))
-#complete<-subset(vardataframe[116:180,], select=c("YWR", "YER", "RCO", "GCR", "RIN"))
+load("Result/vardata")
+
 
 # I keep variables from Q4 1997
 subset<-subset(vardataframe[116:180,])
