@@ -1,0 +1,258 @@
+\documentclass[11pt,oneside, a4paper]{amsart}\usepackage[]{graphicx}\usepackage[]{color}
+%% maxwidth is the original width if it is less than linewidth
+%% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage{natbib}
+
+\usepackage{amsbsy,amsmath}
+\usepackage{amssymb,amsfonts}
+\usepackage{bbm}%give 1 with dbl vertical bar 
+\usepackage{booktabs,url,enumerate}
+\usepackage{color,xcolor,colortbl}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{rotating,graphicx,lscape}
+\usepackage{commath}
+\usetikzlibrary{arrows,positioning} 
+\usepackage[hypcap]{caption}
+\newcommand{\sgn}{\mathrm{sign}}
+\usepackage{setspace}
+
+% bold rows
+\usepackage{array}
+\newcolumntype{$}{>{\global\let\currentrowstyle\relax}}
+\newcolumntype{^}{>{\currentrowstyle}}
+\newcommand{\rowstyle}[1]{\gdef\currentrowstyle{#1}%
+  #1\ignorespaces
+}
+
+% Invisible table columns!
+\newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}% Properly placed sideways table with asmart class. 
+
+\setlength\rotFPtop{0pt plus 1fil} 
+
+
+\usepackage[top=1.5cm, bottom=1.5cm, left=3.0cm, right=3.0cm]{geometry}
+
+\DeclareMathOperator{\Med}{\mathbb{M}ed}
+\DeclareMathOperator{\Mean}{\mathbb{M}ean}
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\nid}{NID}
+\DeclareMathOperator{\N}{\mathcal{N}}
+\DeclareMathOperator{\corr}{corr}
+\DeclareMathOperator{\diag}{diag}
+\onehalfspace
+
+
+\definecolor{LightRed}{rgb}{1,.88,.88}
+\definecolor{LightBlue}{rgb}{.88,.88,1}
+\definecolor{LightGreen}{rgb}{.88,1,.88}
+
+\newtheorem{theorem}{Theorem}
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+  
+\title{IRF}   
+\author{Clément Carrier}
+\date{\today}
+\maketitle
+
+
+\section*{Shock response}
+
+Consider a VAR(1) in difference where the parameters have been estimated:
+\begin{align}
+\Delta Y_t &= \Delta Y_{t-1} \hat A + \epsilon_t,\nonumber
+\end{align}
+
+To compute the response to an exogenous shock of size $s$ to the first variable in $Y$, construct the vector $\delta =[s,0,...,0]$. The response at after $h$ periods is given by $\delta \hat A^h$. 
+\begin{itemize}
+\item For models with multiple lags the companion form (or simply recursive computations) can be used.
+\item For models with exogenous variables, at path for the exogenous variables has to be specified. In general it should be equal to zero or to a random walk forecast, at least in periods following an initial shock. 
+\item The deterministics can be omitted. 
+\item For VECM models, things are more complicated but not much more difficult.    
+\end{itemize}
+
+
+\section*{Conditional forecasts}
+
+The options so far:
+\begin{itemize}
+\item Create a model for the exogenous variable. 
+\item Use na\"{i}ve methods (i.e. RW).
+\item Compute prediction density for the exogenous variable and plug in the model. Gaussian + linear = Gaussian.
+\item Condition on true value. 
+\end{itemize}
+
+
+
+\section*{Application sur R}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{require}\hlstd{(lassovar)}
+\hlkwd{require}\hlstd{(ggplot2)}
+\hlkwd{require}\hlstd{(reshape2)}
+\hlkwd{require}\hlstd{(urca)}
+\hlkwd{require}\hlstd{(MSBVAR)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{load}\hlstd{(}\hlstr{"vardata"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+I keep variables from Q4 1997 :
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{data}\hlkwb{<-}\hlkwd{subset}\hlstd{(vardataframe[}\hlnum{116}\hlopt{:}\hlnum{180}\hlstd{,])}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+First difference of all series : 
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{difdata} \hlkwb{<-} \hlkwd{tail}\hlstd{(data,}\hlopt{-}\hlnum{1}\hlstd{)} \hlopt{-} \hlkwd{head}\hlstd{(data,}\hlopt{-}\hlnum{1}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+Function for computing the IRF :
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{forecast}\hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{data}\hlstd{,}\hlkwc{lag}\hlstd{,}\hlkwc{horizon}\hlstd{,}\hlkwc{choc}\hlstd{)\{}
+  \hlstd{fore}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwc{nrow}\hlstd{=}\hlkwd{dim}\hlstd{(data)[}\hlnum{2}\hlstd{],}\hlkwc{ncol}\hlstd{=horizon)}
+  \hlstd{lv}\hlkwb{<-}\hlkwd{lassovar}\hlstd{(}\hlkwc{dat}\hlstd{=data,}\hlkwc{lags}\hlstd{=lag,} \hlkwc{ic}\hlstd{=}\hlstr{"BIC"}\hlstd{)}
+  \hlstd{coeff}\hlkwb{<-}\hlstd{lv}\hlopt{$}\hlstd{coefficients[}\hlopt{-}\hlnum{1}\hlstd{,]}
+  \hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlstd{horizon)\{}
+    \hlstd{fore[,i]}\hlkwb{<-}\hlstd{coeff}\hlopt{^}\hlstd{i}\hlopt{%*%}\hlstd{choc}
+  \hlstd{\}}
+\hlkwd{return}\hlstd{(}\hlkwd{t}\hlstd{(fore))}
+\hlstd{\}}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+HICP shock and IRF : 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{HICP}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlkwd{c}\hlstd{(}\hlkwd{rep}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{5}\hlstd{),}\hlnum{1}\hlstd{,}\hlkwd{rep}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{20}\hlstd{)))}
+\hlstd{IRF}\hlkwb{<-}\hlkwd{data.frame}\hlstd{(}\hlkwd{forecast}\hlstd{(difdata,}\hlnum{1}\hlstd{,}\hlnum{16}\hlstd{,HICP))}
+\hlkwd{colnames}\hlstd{(IRF)}\hlkwb{<-}\hlkwd{names}\hlstd{(difdata)}
+\hlstd{var1}\hlkwb{<-}\hlstd{IRF[,}\hlnum{1}\hlopt{:}\hlnum{5}\hlstd{]}
+\hlstd{var2}\hlkwb{<-}\hlstd{IRF[,}\hlnum{6}\hlopt{:}\hlnum{10}\hlstd{]}
+\hlstd{var3}\hlkwb{<-}\hlstd{IRF[,}\hlnum{11}\hlopt{:}\hlnum{15}\hlstd{]}
+\hlstd{var4}\hlkwb{<-}\hlstd{IRF[,}\hlnum{16}\hlopt{:}\hlnum{20}\hlstd{]}
+\hlstd{var5}\hlkwb{<-}\hlstd{IRF[,}\hlnum{21}\hlopt{:}\hlnum{26}\hlstd{]}
+
+\hlstd{var1}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/01/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
+\hlstd{var2}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/01/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
+\hlstd{var3}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/01/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
+\hlstd{var4}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/01/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
+\hlstd{var5}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/01/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
+
+\hlstd{mvar1} \hlkwb{<-} \hlkwd{melt}\hlstd{(var1,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
+\hlstd{mvar2} \hlkwb{<-} \hlkwd{melt}\hlstd{(var2,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
+\hlstd{mvar3} \hlkwb{<-} \hlkwd{melt}\hlstd{(var3,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
+\hlstd{mvar4} \hlkwb{<-} \hlkwd{melt}\hlstd{(var4,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
+\hlstd{mvar5} \hlkwb{<-} \hlkwd{melt}\hlstd{(var5,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
+
+\hlkwd{ggplot}\hlstd{(mvar1,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-2-1} 
+\begin{kframe}\begin{alltt}
+\hlkwd{ggplot}\hlstd{(mvar2,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-2-2} 
+\begin{kframe}\begin{alltt}
+\hlkwd{ggplot}\hlstd{(mvar3,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-2-3} 
+\begin{kframe}\begin{alltt}
+\hlkwd{ggplot}\hlstd{(mvar4,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-2-4} 
+\begin{kframe}\begin{alltt}
+\hlkwd{ggplot}\hlstd{(mvar5,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-2-5} 
+
+\end{knitrout}
+
+
+
+
+
+
+
+
+
+\end{document}

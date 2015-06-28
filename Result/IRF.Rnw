@@ -1,0 +1,166 @@
+\documentclass[11pt,oneside, a4paper]{amsart}
+\usepackage{natbib}
+
+\usepackage{amsbsy,amsmath}
+\usepackage{amssymb,amsfonts}
+\usepackage{bbm}%give 1 with dbl vertical bar 
+\usepackage{booktabs,url,enumerate}
+\usepackage{color,xcolor,colortbl}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{rotating,graphicx,lscape}
+\usepackage{commath}
+\usetikzlibrary{arrows,positioning} 
+\usepackage[hypcap]{caption}
+\newcommand{\sgn}{\mathrm{sign}}
+\usepackage{setspace}
+
+% bold rows
+\usepackage{array}
+\newcolumntype{$}{>{\global\let\currentrowstyle\relax}}
+\newcolumntype{^}{>{\currentrowstyle}}
+\newcommand{\rowstyle}[1]{\gdef\currentrowstyle{#1}%
+  #1\ignorespaces
+}
+
+% Invisible table columns!
+\newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}% Properly placed sideways table with asmart class. 
+
+\setlength\rotFPtop{0pt plus 1fil} 
+
+
+\usepackage[top=1.5cm, bottom=1.5cm, left=3.0cm, right=3.0cm]{geometry}
+
+\DeclareMathOperator{\Med}{\mathbb{M}ed}
+\DeclareMathOperator{\Mean}{\mathbb{M}ean}
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\nid}{NID}
+\DeclareMathOperator{\N}{\mathcal{N}}
+\DeclareMathOperator{\corr}{corr}
+\DeclareMathOperator{\diag}{diag}
+\onehalfspace
+
+
+\definecolor{LightRed}{rgb}{1,.88,.88}
+\definecolor{LightBlue}{rgb}{.88,.88,1}
+\definecolor{LightGreen}{rgb}{.88,1,.88}
+
+\newtheorem{theorem}{Theorem}
+\begin{document}
+
+  
+\title{IRF}   
+\author{Clément Carrier}
+\date{\today}
+\maketitle
+
+
+\section*{Shock response}
+
+Consider a VAR(1) in difference where the parameters have been estimated:
+\begin{align}
+\Delta Y_t &= \Delta Y_{t-1} \hat A + \epsilon_t,\nonumber
+\end{align}
+
+To compute the response to an exogenous shock of size $s$ to the first variable in $Y$, construct the vector $\delta =[s,0,...,0]$. The response at after $h$ periods is given by $\delta \hat A^h$. 
+\begin{itemize}
+\item For models with multiple lags the companion form (or simply recursive computations) can be used.
+\item For models with exogenous variables, at path for the exogenous variables has to be specified. In general it should be equal to zero or to a random walk forecast, at least in periods following an initial shock. 
+\item The deterministics can be omitted. 
+\item For VECM models, things are more complicated but not much more difficult.    
+\end{itemize}
+
+
+\section*{Conditional forecasts}
+
+The options so far:
+\begin{itemize}
+\item Create a model for the exogenous variable. 
+\item Use na\"{i}ve methods (i.e. RW).
+\item Compute prediction density for the exogenous variable and plug in the model. Gaussian + linear = Gaussian.
+\item Condition on true value. 
+\end{itemize}
+
+
+
+\section*{Application sur R}
+
+<<package, cache=TRUE>>=
+require(lassovar)
+require(ggplot2)
+require(reshape2)
+require(urca)
+require(MSBVAR)
+@
+
+<<Data>>=
+load("vardata")
+@
+
+I keep variables from Q4 1997 :
+<<>>=
+data<-subset(vardataframe[116:180,])
+@
+
+First difference of all series : 
+<<Differenciating>>=
+difdata <- tail(data,-1) - head(data,-1)
+@
+
+
+Function for computing the IRF :
+<<Function for IRF>>=
+forecast<-function(data,lag,horizon,choc){
+  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon)
+  lv<-lassovar(dat=data,lags=lag, ic="BIC")
+  coeff<-lv$coefficients[-1,]
+  for (i in 1:horizon){
+    fore[,i]<-coeff^i%*%choc
+  }
+return(t(fore))
+}
+@
+
+
+HICP shock and IRF : 
+
+<<>>=
+HICP<-matrix(c(rep(0,5),1,rep(0,20)))
+IRF<-data.frame(forecast(difdata,1,16,HICP))
+colnames(IRF)<-names(difdata)
+var1<-IRF[,1:5]
+var2<-IRF[,6:10]
+var3<-IRF[,11:15]
+var4<-IRF[,16:20]
+var5<-IRF[,21:26]
+
+var1$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+var2$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+var3$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+var4$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+var5$time<-seq(as.Date("2014/01/01"), as.Date("2017/12/31"), by = "quarter")
+
+mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
+mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
+mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
+mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
+mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
+
+ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+@
+
+
+
+
+
+
+
+
+
+\end{document}
