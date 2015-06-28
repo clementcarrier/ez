@@ -1,4 +1,3 @@
-
 \documentclass[11pt,oneside, a4paper]{amsart}
 \usepackage{natbib}
 
@@ -50,7 +49,7 @@
 
 \newtheorem{theorem}{Theorem}
 \begin{document}
-\SweaveOpts{concordance=TRUE}
+
 	
 \title{Some notes on VAR models for the EZ.}   
 \author{LAFC}
