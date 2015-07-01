@@ -93,7 +93,6 @@ require(ggplot2)
 require(reshape2)
 require(urca)
 require(MSBVAR)
-
 @
 
 <<Data>>=
@@ -112,7 +111,7 @@ difdata <- tail(data,-1) - head(data,-1)
 
 
 
-\section*{Exogenous shock}
+\section*{Shock Response}
 
 Function for computing the IRF :
 <<Function for IRF>>=
