@@ -1,0 +1,10 @@
+base
+knitr
+Matrix
+foreach
+glmnet
+grpreg
+dplyr
+DBI
+biglm
+lassovar

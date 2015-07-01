@@ -1,0 +1,11 @@
+*Estimation*
+
+Open the VAR database : 
+
+```r
+data<-load("vardata.R")
+```
+
+
+LASSO estimation : 
+
