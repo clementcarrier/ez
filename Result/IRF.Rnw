@@ -87,7 +87,7 @@ The options so far:
 
 \section*{Application sur R}
 
-<<package, cache=TRUE>>=
+<<package>>=
 require(lassovar)
 require(ggplot2)
 require(reshape2)
@@ -142,6 +142,9 @@ rw<-function(t,x){
 }
 @
 
+
+What do we choose for the variances  ? 
+Variances of variables in the data set used for estimation ?\\
 
 Function to compute IRF to RW evolution of exogeneous variables
 <<>>=

@@ -90,3 +90,4 @@ ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="fr
 ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
 
 
+

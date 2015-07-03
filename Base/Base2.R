@@ -13,21 +13,21 @@ subset<-subset(data, select=c("YWR", "YER", "RCO","GCR", "RIN","XTR", "MTR","LNN
 subsets<-ts(subset,frequency=4, start=1970)
 
 # making transformation required
-YWR<-4*log(subsets[,"YWR"])
-YER<-4*log(subsets[,"YER"])
-RCO<-4*log(subsets[,"RCO"])
-RIN<-4*log(subsets[,"RIN"])
-GCR<-4*log(subsets[,"GCR"])
-XTR<-4*log(subsets[,"XTR"])
-MTR<-4*log(subsets[,"MTR"])
-LNN<-4*log(subsets[,"LNN"])
-POILU<-4*log(subsets[,"POILU"])
-PCOMU<-4*log(subsets[,"PCOMU"])
-HICP<-4*log(subsets[,"HICP"])
-YED<-4*log(subsets[,"YED"])
-MTD<-4*log(subsets[,"MTD"])
-CPE<-4*log(subsets[,"CPE"])
-EEN<-4*log(subsets[,"EEN"])
+YWR<-subsets[,"YWR"]
+YER<-log(subsets[,"YER"])
+RCO<-log(subsets[,"RCO"])
+RIN<-log(subsets[,"RIN"])
+GCR<-log(subsets[,"GCR"])
+XTR<-log(subsets[,"XTR"])
+MTR<-log(subsets[,"MTR"])
+LNN<-log(subsets[,"LNN"])
+POILU<-log(subsets[,"POILU"])
+PCOMU<-log(subsets[,"PCOMU"])
+HICP<-log(subsets[,"HICP"])
+YED<-log(subsets[,"YED"])
+MTD<-log(subsets[,"MTD"])
+CPE<-log(subsets[,"CPE"])
+EEN<-log(subsets[,"EEN"])
 URX<-subsets[,"URX"]
 STN<-subsets[,"STN"]
 LTN<-subsets[,"LTN"]
@@ -42,7 +42,7 @@ dataMagreg$X<-NULL
 
 monthly <- ts(dataMagreg,start=c(1970,1),frequency=12)
 quarterly <- aggregate(monthly, nfrequency=4)/3
-logquarterly <- 4*log(quarterly)
+logquarterly <- log(quarterly)
 
 M1<-logquarterly[,"M1"]
 M3<-logquarterly[,"M3"]
@@ -54,7 +54,7 @@ loans$date<-NULL
 
 monthly2 <- ts(loans[2:196,],start=c(1997,10),frequency=12)
 quarterly2 <- aggregate(monthly2, nfrequency=4)/3
-logquarterly2 <- 4*log(quarterly2)
+logquarterly2 <- log(quarterly2)
 LFI<-logquarterly2[,"LFI"]
 LHO<-logquarterly2[,"LHO"]
 
@@ -64,7 +64,7 @@ PPI <- read.csv("~/Documents/Stage VU/Todo/ECB/PPI.csv")
 
 monthly3 <- ts(rev(PPI[,2]),start=c(1981,1),frequency=12)
 quarterly3 <- aggregate(monthly3, nfrequency=4)/3
-PPI <- 4*log(quarterly3)
+PPI <- log(quarterly3)
 
 
 
@@ -90,7 +90,7 @@ ESI <- ESIq/100
 #### DATASTREAM ####
 dowEuroStoxx <- read.csv("~/Documents/Stage VU/Todo/Datastream/dowEuroStoxx.csv", sep=";", dec=",")
 DJES<-ts(dowEuroStoxx[1:108,2],start=c(1987,1),frequency=4)
-
+DJES<-log(DJES)
 
 
 #### FUSION BASE ####
@@ -121,5 +121,6 @@ vardataframe<-rbind(nature,country,SeaAjus,def,vardataframe)
 
 
 setwd("~/Documents/Stage VU/Todo/Base")
-save(vardataframe,file="vardata")
+save(vardataframe,file="vardata2")
+
 
