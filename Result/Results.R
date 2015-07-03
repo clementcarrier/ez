@@ -5,8 +5,8 @@ require(urca)
 require(MSBVAR)
 
 #load("~/Documents/Stage VU/Todo/Result/vardata.R")
+#load("Result/vardata")
 load("Result/vardata")
-
 
 # I keep variables from Q4 1997
 subset<-subset(vardataframe[116:180,])
