@@ -4,33 +4,34 @@ data <- read.csv("~/Documents/Stage VU/Todo/AWM/AWM18UP14.csv")
 
 #creation of the variable "compensation per employee" & "real consumption" & "real investment"
 data$CPE=data$WIN/data$LEN
-data$RCO=data$PCR/data$PCD
-data$RIN=data$ITR/data$ITD
+
 
 
 # extracting subset of AWM data
-subset<-subset(data, select=c("YWR", "YER", "RCO","GCR", "RIN","XTR", "MTR","LNN", "URX","POILU", "PCOMU","HICP", "YED","MTD", "CPE","STN", "LTN","EEN"))
+subset<-subset(data, select=c("COMPR", "PCOMU", "POILU", "HEG", "HEXSA", "HICPSA", "HICP","EEN", "EXR", "STN", "LTN" , "URX", "YER", "XTR", "MTR", "CPE", "YWRX"))
 subsets<-ts(subset,frequency=4, start=1970)
 
 # making transformation required
-YWR<-subsets[,"YWR"]
-YER<-log(subsets[,"YER"])
-RCO<-log(subsets[,"RCO"])
-RIN<-log(subsets[,"RIN"])
-GCR<-log(subsets[,"GCR"])
-XTR<-log(subsets[,"XTR"])
-MTR<-log(subsets[,"MTR"])
-LNN<-log(subsets[,"LNN"])
+COMPR<-log(subsets[,"COMPR"])
 POILU<-log(subsets[,"POILU"])
 PCOMU<-log(subsets[,"PCOMU"])
+HEG<-log(subsets[,"HEG"])
+HEXSA<-log(subsets[,"HEXSA"])
+HICPSA<-log(subsets[,"HICPSA"])
 HICP<-log(subsets[,"HICP"])
-YED<-log(subsets[,"YED"])
-MTD<-log(subsets[,"MTD"])
-CPE<-log(subsets[,"CPE"])
-EEN<-log(subsets[,"EEN"])
+
+EEN<-subsets[,"EEN"]
+EXR<-subsets[,"EXR"]
 URX<-subsets[,"URX"]
-STN<-subsets[,"STN"]
-LTN<-subsets[,"LTN"]
+STN<-subsets[,"STN"]/100
+LTN<-subsets[,"LTN"]/100
+
+YWRX<-log(subsets[,"YWRX"])
+YER<-log(subsets[,"YER"])
+CPE<-log(subsets[,"CPE"])
+MTR<-log(subsets[,"MTR"])
+XTR<-log(subsets[,"XTR"])
+
 
 
 
@@ -71,7 +72,7 @@ PPI <- log(quarterly3)
 
 #### IMF ####
 LIB3M <- read.csv("~/Documents/Stage VU/Todo/IMF/LIB3M.csv")
-LIB<-ts(LIB3M,start=c(1970,1),frequency=4)
+LIB<-ts(LIB3M,start=c(1970,1),frequency=4)/100
 
 
 
@@ -95,32 +96,12 @@ DJES<-log(DJES)
 
 #### FUSION BASE ####
 
-vardata<-as.ts(cbind(YWR, YER, RCO,GCR, RIN,XTR, MTR,LNN, URX, POILU, PCOMU, HICP, YED, MTD, CPE, STN, LTN, EEN, LHO, LFI , M1 , M3 ,ESI, LIB, PPI, DJES ))
+vardata<-as.ts(cbind(COMPR, PCOMU, POILU, HEG, HEXSA, HICPSA, HICP,EEN, EXR, STN, LTN , URX, YER, XTR, MTR, CPE, YWRX, LHO, LFI , M1 , M3 ,ESI, LIB, PPI, DJES ))
 vardataframe<-data.frame(vardata[1:176,])
-vardataframe<-vardataframe[,order(names(vardataframe))]
 
 
 
-
-#Variable Indicators 
-
-# 0:nominal  1:real
-nature<-c(rep(0,3),1,rep(0,4),1,rep(0,4),1,rep(0,3),rep(1,2),0,rep(1,2),0,rep(1,3))
-
-# 1:Euro Area  0:ROW
-country<-c(rep(0,7),1,rep(0,7),1,rep(0,8),rep(1,2))
-
-# 0:NSA  1:SA
-SeaAjus<-c(rep(0,2),1,rep(0,7),rep(1,2),rep(0,14))
-
-# 0:macro  1:fin  2:mon  3:credit
-def<-c(rep(0,5),rep(3,2),1,0,1,rep(2,2),rep(0,7),1,rep(0,5),1)
-
-
-vardataframe<-rbind(nature,country,SeaAjus,def,vardataframe)
-
-
-setwd("~/Documents/Stage VU/Todo/Base")
-save(vardataframe,file="vardata2")
+setwd("~/Documents/Stage VU/Todo/Result")
+save(vardataframe,file="vardata3.Rdata")
 
 
