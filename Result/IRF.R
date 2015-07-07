@@ -10,7 +10,7 @@ require(MSBVAR)
 #data<-subset(vardataframe[113:176,])
 #datats<-ts(data,frequency=4, start=1998)
 
-load("Result/vardata2")
+load("vardata2")
 data<-subset(vardataframe[117:180,])
 datats<-ts(data,frequency=4, start=1998)
 
@@ -85,9 +85,9 @@ rw<-function(t,x){
   y<-matrix(0,dim(x)[2],t)
   y[,1]<-t(x)
   for(i in 2:t){
-    y[,i] <- y[,i-1] + matrix(rnorm(dim(x)[2],0,1),dim(x)[2],1)
+    y[,i] <- y[,i-1] + matrix(rnorm(dim(x)[2],0,0.5),dim(x)[2],1)
   }
-  return(y)
+  return(y[,-1])
 }
 
 
@@ -96,13 +96,13 @@ rw<-function(t,x){
 
 conditional<-function(exogen,data,lag,horizon,preforecast){
   all=data.frame(exogen,data)
-  fore<-matrix(0,nrow=dim(data)[2]+dim(exogen)[2],ncol=horizon+preforecast*4)
-  fore[,1:(preforecast*4)]<-t(all[(dim(all)[1]-preforecast*4+1):dim(all)[1],])
-  fore[1:dim(exogen)[2],-c(1:(preforecast*4))]<-rw(horizon,as.matrix(exogen[dim(exogen)[1],]))
+  fore<-matrix(0,nrow=dim(data)[2]+dim(exogen)[2],ncol=horizon+preforecast)
+  fore[,1:(preforecast)]<-t(all[(dim(all)[1]-preforecast+1):dim(all)[1],])
+  fore[1:dim(exogen)[2],-c(1:(preforecast))]<-rw(horizon+1,as.matrix(exogen[dim(exogen)[1],]))
   lv<-lassovar(dat=all,lags=lag, ic="BIC")
   coeff<-as.matrix(t(lv$coefficients[-1,]),26,26)
   intercept<-as.matrix(lv$coefficients[1,],26,1)
-  for (i in (preforecast*4+1):(horizon+preforecast*4)){
+  for (i in (preforecast+1):(horizon+preforecast)){
     fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff%*%fore[,i-1])[-dim(exogen)[2]]
   }
   rownames(fore)<-names(all)
@@ -168,7 +168,10 @@ ggplot(var, aes(time,value, col=series)) + geom_point() + stat_smooth()
 
 
 
-# inflation rate
+
+
+
+###### inflation rate ######
 HICP<-vardataframe[113:180,6]
 
 inflation<-NULL
@@ -186,10 +189,13 @@ colnames(exo)<-'POILU'
 end<-subset(data[,-which(names(data) %in% c("POILU"))])
 
 
-iter<-100
-HICPpred<-matrix(0,28,iter)
+iter<-1000
+preforecast<-16
+horizon<-12
+
+HICPpred<-matrix(0,horizon+preforecast,iter)
 for (i in 1:iter){
-  HICPpred[,i]<-matrix(conditional(exo,end,1,12)[,"inflation"])
+  HICPpred[,i]<-matrix(conditional(exo,end,1,horizon,preforecast)[,"inflation"])
 }
 HICPpred
 HICPpred<-data.frame(HICPpred)
@@ -198,7 +204,6 @@ HICPpred$time<-seq(as.Date("2010/01/01"), as.Date("2016/12/31"), by = "quarter")
 var <- melt(HICPpred,  id = 'time', variable.name = 'series')
 
 
-ggplot(var, aes(time,value, col=series)) + geom_point() + stat_smooth() 
-
+ggplot(var, aes(time,value, col=series)) + geom_point() 
 
 
