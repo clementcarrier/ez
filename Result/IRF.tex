@@ -164,22 +164,22 @@ The options so far:
 \end{alltt}
 
 
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: MSBVAR\\\#\# \#\#\\\#\# \#\# MSBVAR Package v.0.9-2\\\#\# \#\# Build date:\ \ Tue Jul\ \ 7 09:52:18 2015 \\\#\# \#\# Copyright (C) 2005-2015, Patrick T. Brandt\\\#\# \#\# Written by Patrick T. Brandt\\\#\# \#\#\\\#\# \#\# Support provided by the U.S. National Science Foundation\\\#\# \#\# (Grants SES-0351179, SES-0351205, SES-0540816, and SES-0921051)\\\#\# \#\#\\\#\# \\\#\# \\\#\# Attaching package: 'MSBVAR'\\\#\# \\\#\# The following object is masked from 'package:urca':\\\#\# \\\#\#\ \ \ \  summary}}\end{kframe}
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: MSBVAR\\\#\# \#\#\\\#\# \#\# MSBVAR Package v.0.9-2\\\#\# \#\# Build date:\ \ Tue Jul\ \ 7 12:43:19 2015 \\\#\# \#\# Copyright (C) 2005-2015, Patrick T. Brandt\\\#\# \#\# Written by Patrick T. Brandt\\\#\# \#\#\\\#\# \#\# Support provided by the U.S. National Science Foundation\\\#\# \#\# (Grants SES-0351179, SES-0351205, SES-0540816, and SES-0921051)\\\#\# \#\#\\\#\# \\\#\# \\\#\# Attaching package: 'MSBVAR'\\\#\# \\\#\# The following object is masked from 'package:urca':\\\#\# \\\#\#\ \ \ \  summary}}\end{kframe}
 \end{knitrout}
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{load}\hlstd{(}\hlstr{"vardata"}\hlstd{)}
+\hlkwd{load}\hlstd{(}\hlstr{"vardata2"}\hlstd{)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
 
-I keep variables from Q4 1997 :
+I keep variables from Q1 1998 :
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{data}\hlkwb{<-}\hlkwd{subset}\hlstd{(vardataframe[}\hlnum{116}\hlopt{:}\hlnum{180}\hlstd{,])}
+\hlstd{data}\hlkwb{<-}\hlkwd{subset}\hlstd{(vardataframe[}\hlnum{117}\hlopt{:}\hlnum{180}\hlstd{,])}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
@@ -218,7 +218,8 @@ Function for computing the IRF :
 
 \section*{Conditional Shock}
 
-Function to generate RW for exogonous variables
+Function to generate RW for exogonous variables. I fixed the variance of the schock equal to the variance of oil price index on the sample. The reason is that, in the following IRF I only use oil price as exogenous variable. I need to modify the function. 
+
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -226,7 +227,7 @@ Function to generate RW for exogonous variables
   \hlstd{y}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],t)}
   \hlstd{y[,}\hlnum{1}\hlstd{]}\hlkwb{<-}\hlkwd{t}\hlstd{(x)}
   \hlkwa{for}\hlstd{(i} \hlkwa{in} \hlnum{2}\hlopt{:}\hlstd{t)\{}
-    \hlstd{y[,i]} \hlkwb{<-} \hlstd{y[,i}\hlopt{-}\hlnum{1}\hlstd{]} \hlopt{+} \hlkwd{matrix}\hlstd{(}\hlkwd{rnorm}\hlstd{(}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],}\hlnum{0}\hlstd{,}\hlnum{1}\hlstd{),}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],}\hlnum{1}\hlstd{)}
+    \hlstd{y[,i]} \hlkwb{<-} \hlstd{y[,i}\hlopt{-}\hlnum{1}\hlstd{]} \hlopt{+} \hlkwd{matrix}\hlstd{(}\hlkwd{rnorm}\hlstd{(}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],}\hlnum{0}\hlstd{,}\hlnum{0.4942424}\hlstd{),}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],}\hlnum{1}\hlstd{)}
   \hlstd{\}}
   \hlkwd{return}\hlstd{(y)}
 \hlstd{\}}
@@ -235,8 +236,6 @@ Function to generate RW for exogonous variables
 \end{knitrout}
 
 
-What do we choose for the variances  ? 
-Variances of variables in the data set used for estimation ?\\
 
 Function to compute IRF to RW evolution of exogeneous variables
 \begin{knitrout}
@@ -248,10 +247,10 @@ Function to compute IRF to RW evolution of exogeneous variables
   \hlstd{fore[,}\hlnum{1}\hlstd{]}\hlkwb{<-}\hlkwd{t}\hlstd{(all[}\hlkwd{dim}\hlstd{(all)[}\hlnum{1}\hlstd{],])}
   \hlstd{fore[}\hlnum{1}\hlopt{:}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],}\hlopt{-}\hlnum{1}\hlstd{]}\hlkwb{<-}\hlkwd{rw}\hlstd{(horizon,}\hlkwd{as.matrix}\hlstd{(exogen[}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{1}\hlstd{],]))}
   \hlstd{lv}\hlkwb{<-}\hlkwd{lassovar}\hlstd{(}\hlkwc{dat}\hlstd{=all,}\hlkwc{lags}\hlstd{=lag,} \hlkwc{ic}\hlstd{=}\hlstr{"BIC"}\hlstd{)}
-  \hlstd{coeff}\hlkwb{<-}\hlkwd{as.matrix}\hlstd{(lv}\hlopt{$}\hlstd{coefficients[}\hlopt{-}\hlnum{1}\hlstd{,],}\hlnum{26}\hlstd{,}\hlnum{26}\hlstd{)}
-
+  \hlstd{coeff}\hlkwb{<-}\hlkwd{as.matrix}\hlstd{(}\hlkwd{t}\hlstd{(lv}\hlopt{$}\hlstd{coefficients[}\hlopt{-}\hlnum{1}\hlstd{,]),}\hlnum{26}\hlstd{,}\hlnum{26}\hlstd{)}
+  \hlstd{intercept}\hlkwb{<-}\hlkwd{as.matrix}\hlstd{(lv}\hlopt{$}\hlstd{coefficients[}\hlnum{1}\hlstd{,],}\hlnum{26}\hlstd{,}\hlnum{1}\hlstd{)}
   \hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{2}\hlopt{:}\hlstd{(horizon}\hlopt{+}\hlnum{1}\hlstd{))\{}
-    \hlstd{fore[}\hlopt{-}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],i]}\hlkwb{<-}\hlstd{(coeff}\hlopt{%*%}\hlstd{fore[,i}\hlopt{-}\hlnum{1}\hlstd{])[}\hlopt{-}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{]]}
+    \hlstd{fore[}\hlopt{-}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],i]}\hlkwb{<-}\hlstd{intercept[}\hlopt{-}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],]}\hlopt{+}\hlstd{(coeff}\hlopt{%*%}\hlstd{fore[,i}\hlopt{-}\hlnum{1}\hlstd{])[}\hlopt{-}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{]]}
   \hlstd{\}}
   \hlkwd{rownames}\hlstd{(fore)}\hlkwb{<-}\hlkwd{names}\hlstd{(all)}
   \hlkwd{return}\hlstd{(}\hlkwd{t}\hlstd{(fore))}
@@ -265,65 +264,71 @@ Function to compute IRF to RW evolution of exogeneous variables
 
 \section*{Application with Oil Price as exogenous variable}
 
+
+I transform the HICP index in an inflation rate (year-on-year)
+
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{exo}\hlkwb{<-}\hlkwd{data.frame}\hlstd{(difdata}\hlopt{$}\hlstd{POILU)}
+\hlstd{HICP}\hlkwb{<-}\hlstd{vardataframe[}\hlnum{113}\hlopt{:}\hlnum{180}\hlstd{,}\hlnum{6}\hlstd{]}
+
+\hlstd{inflation}\hlkwb{<-}\hlkwa{NULL}
+\hlkwa{for} \hlstd{(i} \hlkwa{in} \hlkwd{seq}\hlstd{(}\hlkwc{from}\hlstd{=}\hlnum{5}\hlstd{,}\hlkwc{to}\hlstd{=}\hlkwd{length}\hlstd{(HICP),}\hlkwc{by}\hlstd{=}\hlnum{1}\hlstd{))\{}
+  \hlstd{inflation[i]}\hlkwb{=}\hlopt{-}\hlnum{1}\hlopt{+}\hlkwd{exp}\hlstd{(HICP[i])}\hlopt{/}\hlkwd{exp}\hlstd{(HICP[i}\hlopt{-}\hlnum{4}\hlstd{])}
+\hlstd{\}}
+
+\hlstd{inflation}\hlkwb{<-}\hlstd{inflation[}\hlnum{5}\hlopt{:}\hlnum{68}\hlstd{]}\hlopt{*}\hlnum{100}
+
+\hlstd{data}\hlopt{$}\hlstd{HICP}\hlkwb{<-}\hlkwa{NULL}
+\hlstd{data}\hlopt{$}\hlstd{inflation}\hlkwb{<-}\hlstd{inflation}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+
+I choose oil price as exogenous variable.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{exo}\hlkwb{<-}\hlkwd{data.frame}\hlstd{(data}\hlopt{$}\hlstd{POILU)}
 \hlkwd{colnames}\hlstd{(exo)}\hlkwb{<-}\hlstr{'POILU'}
-\hlstd{end}\hlkwb{<-}\hlkwd{subset}\hlstd{(difdata[,}\hlopt{-}\hlkwd{which}\hlstd{(}\hlkwd{names}\hlstd{(difdata)} \hlopt{%in%} \hlkwd{c}\hlstd{(}\hlstr{"POILU"}\hlstd{))])}
-\hlstd{IRF}\hlkwb{<-}\hlkwd{conditional}\hlstd{(exo,end,}\hlnum{1}\hlstd{,}\hlnum{12}\hlstd{)}
-\hlstd{IRF}\hlkwb{<-}\hlkwd{data.frame}\hlstd{(IRF)}
+\hlstd{end}\hlkwb{<-}\hlkwd{subset}\hlstd{(data[,}\hlopt{-}\hlkwd{which}\hlstd{(}\hlkwd{names}\hlstd{(data)} \hlopt{%in%} \hlkwd{c}\hlstd{(}\hlstr{"POILU"}\hlstd{))])}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
+
+I iterate 100 random walk scenario for oil price, and I keep the prediction of inflation. 
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{var1}\hlkwb{<-}\hlstd{IRF[,}\hlnum{1}\hlopt{:}\hlnum{5}\hlstd{]}
-\hlstd{var2}\hlkwb{<-}\hlstd{IRF[,}\hlnum{6}\hlopt{:}\hlnum{10}\hlstd{]}
-\hlstd{var3}\hlkwb{<-}\hlstd{IRF[,}\hlnum{11}\hlopt{:}\hlnum{15}\hlstd{]}
-\hlstd{var4}\hlkwb{<-}\hlstd{IRF[,}\hlnum{16}\hlopt{:}\hlnum{20}\hlstd{]}
-\hlstd{var5}\hlkwb{<-}\hlstd{IRF[,}\hlnum{21}\hlopt{:}\hlnum{26}\hlstd{]}
+\hlstd{iter}\hlkwb{<-}\hlnum{100}
+\hlstd{HICPpred}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{13}\hlstd{,iter)}
+\hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlstd{iter)\{}
+  \hlstd{HICPpred[,i]}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlkwd{conditional}\hlstd{(exo,end,}\hlnum{1}\hlstd{,}\hlnum{12}\hlstd{)[,}\hlstr{"inflation"}\hlstd{])}
+\hlstd{\}}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
 
-\hlstd{var1}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/10/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
-\hlstd{var2}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/10/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
-\hlstd{var3}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/10/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
-\hlstd{var4}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/10/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
-\hlstd{var5}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/10/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
 
-\hlstd{mvar1} \hlkwb{<-} \hlkwd{melt}\hlstd{(var1,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
-\hlstd{mvar2} \hlkwb{<-} \hlkwd{melt}\hlstd{(var2,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
-\hlstd{mvar3} \hlkwb{<-} \hlkwd{melt}\hlstd{(var3,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
-\hlstd{mvar4} \hlkwb{<-} \hlkwd{melt}\hlstd{(var4,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
-\hlstd{mvar5} \hlkwb{<-} \hlkwd{melt}\hlstd{(var5,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
 
-\hlkwd{ggplot}\hlstd{(mvar1,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{HICPpred}\hlkwb{<-}\hlkwd{data.frame}\hlstd{(HICPpred)}
+\hlstd{HICPpred}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/10/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
+\hlstd{var} \hlkwb{<-} \hlkwd{melt}\hlstd{(HICPpred,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
+\hlkwd{ggplot}\hlstd{(var,} \hlkwd{aes}\hlstd{(time,value,} \hlkwc{col}\hlstd{=series))} \hlopt{+} \hlkwd{geom_point}\hlstd{()} \hlopt{+} \hlkwd{stat_smooth}\hlstd{()}
 \end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-5-1} 
-\begin{kframe}\begin{alltt}
-\hlkwd{ggplot}\hlstd{(mvar2,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-5-2} 
-\begin{kframe}\begin{alltt}
-\hlkwd{ggplot}\hlstd{(mvar3,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-5-3} 
-\begin{kframe}\begin{alltt}
-\hlkwd{ggplot}\hlstd{(mvar4,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-5-4} 
-\begin{kframe}\begin{alltt}
-\hlkwd{ggplot}\hlstd{(mvar5,} \hlkwd{aes}\hlstd{(time,value))} \hlopt{+} \hlkwd{geom_line}\hlstd{()} \hlopt{+} \hlkwd{facet_grid}\hlstd{(series} \hlopt{~} \hlstd{. ,}\hlkwc{scales}\hlstd{=}\hlstr{"free"}\hlstd{)}
-\end{alltt}
-\end{kframe}
-\includegraphics[width=\maxwidth]{figure/unnamed-chunk-5-5} 
+
+
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# geom\_smooth: method="{}auto"{} and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.}}\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-7-1} 
 
 \end{knitrout}
+
 
 
 
