@@ -96,12 +96,12 @@ require(MSBVAR)
 @
 
 <<Data>>=
-load("vardata")
+load("vardata2")
 @
 
-I keep variables from Q4 1997 :
+I keep variables from Q1 1998 :
 <<>>=
-data<-subset(vardataframe[116:180,])
+data<-subset(vardataframe[117:180,])
 @
 
 First difference of all series : 
@@ -130,21 +130,20 @@ return(t(fore))
 
 \section*{Conditional Shock}
 
-Function to generate RW for exogonous variables
+Function to generate RW for exogonous variables. I fixed the variance of the schock equal to the variance of oil price index on the sample. The reason is that, in the following IRF I only use oil price as exogenous variable. I need to modify the function. 
+
 <<>>=
 rw<-function(t,x){
   y<-matrix(0,dim(x)[2],t)
   y[,1]<-t(x)
   for(i in 2:t){
-    y[,i] <- y[,i-1] + matrix(rnorm(dim(x)[2],0,1),dim(x)[2],1)
+    y[,i] <- y[,i-1] + matrix(rnorm(dim(x)[2],0,0.4942424),dim(x)[2],1)
   }
   return(y)
 }
 @
 
 
-What do we choose for the variances  ? 
-Variances of variables in the data set used for estimation ?\\
 
 Function to compute IRF to RW evolution of exogeneous variables
 <<>>=
@@ -154,10 +153,10 @@ conditional<-function(exogen,data,lag,horizon){
   fore[,1]<-t(all[dim(all)[1],])
   fore[1:dim(exogen)[2],-1]<-rw(horizon,as.matrix(exogen[dim(exogen)[1],]))
   lv<-lassovar(dat=all,lags=lag, ic="BIC")
-  coeff<-as.matrix(lv$coefficients[-1,],26,26)
-  
+  coeff<-as.matrix(t(lv$coefficients[-1,]),26,26)
+  intercept<-as.matrix(lv$coefficients[1,],26,1)
   for (i in 2:(horizon+1)){
-    fore[-dim(exogen)[2],i]<-(coeff%*%fore[,i-1])[-dim(exogen)[2]]
+    fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff%*%fore[,i-1])[-dim(exogen)[2]]
   }
   rownames(fore)<-names(all)
   return(t(fore))
@@ -169,39 +168,51 @@ conditional<-function(exogen,data,lag,horizon){
 
 \section*{Application with Oil Price as exogenous variable}
 
+
+I transform the HICP index in an inflation rate (year-on-year)
+
 <<>>=
-exo<-data.frame(difdata$POILU)
+HICP<-vardataframe[113:180,6]
+
+inflation<-NULL
+for (i in seq(from=5,to=length(HICP),by=1)){
+  inflation[i]=-1+exp(HICP[i])/exp(HICP[i-4])
+}
+
+inflation<-inflation[5:68]*100
+
+data$HICP<-NULL
+data$inflation<-inflation
+@
+
+
+I choose oil price as exogenous variable.
+
+<<>>=
+exo<-data.frame(data$POILU)
 colnames(exo)<-'POILU'
-end<-subset(difdata[,-which(names(difdata) %in% c("POILU"))])
-IRF<-conditional(exo,end,1,12)
-IRF<-data.frame(IRF)
+end<-subset(data[,-which(names(data) %in% c("POILU"))])
 @
+
+I iterate 100 random walk scenario for oil price, and I keep the prediction of inflation. 
 
 <<>>=
-var1<-IRF[,1:5]
-var2<-IRF[,6:10]
-var3<-IRF[,11:15]
-var4<-IRF[,16:20]
-var5<-IRF[,21:26]
-
-var1$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var2$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var3$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var4$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var5$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-
-mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
-mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
-mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
-mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
-mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
-
-ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
+iter<-100
+HICPpred<-matrix(0,13,iter)
+for (i in 1:iter){
+  HICPpred[,i]<-matrix(conditional(exo,end,1,12)[,"inflation"])
+}
 @
+
+
+
+<<>>=
+HICPpred<-data.frame(HICPpred)
+HICPpred$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
+var <- melt(HICPpred,  id = 'time', variable.name = 'series')
+ggplot(var, aes(time,value, col=series)) + geom_point() + stat_smooth()
+@
+
 
 
 

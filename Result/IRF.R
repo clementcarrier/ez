@@ -90,9 +90,8 @@ rw<-function(t,x){
 }
 
 
-exo<-data.frame(data$POILU)
-colnames(exo)<-'POILU'
-end<-subset(data[,-which(names(data) %in% c("POILU"))])
+
+
 
 conditional<-function(exogen,data,lag,horizon){
   all=data.frame(exogen,data)
@@ -108,6 +107,10 @@ conditional<-function(exogen,data,lag,horizon){
   rownames(fore)<-names(all)
   return(t(fore))
 }
+
+exo<-data.frame(data$POILU)
+colnames(exo)<-'POILU'
+end<-subset(data[,-which(names(data) %in% c("POILU"))])
 
 
 IRF<-conditional(exo,end,1,12)
