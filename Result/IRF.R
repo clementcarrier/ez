@@ -74,6 +74,7 @@ ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="fr
 
 
 
+
 ##############################
 
 # generate RW exogonous variables
@@ -84,7 +85,7 @@ rw<-function(t,x){
   y<-matrix(0,dim(x)[2],t)
   y[,1]<-t(x)
   for(i in 2:t){
-    y[,i] <- y[,i-1] + matrix(rnorm(dim(x)[2],0,0.4942424),dim(x)[2],1)
+    y[,i] <- y[,i-1] + matrix(rnorm(dim(x)[2],0,1),dim(x)[2],1)
   }
   return(y)
 }
@@ -93,15 +94,15 @@ rw<-function(t,x){
 
 
 
-conditional<-function(exogen,data,lag,horizon){
+conditional<-function(exogen,data,lag,horizon,preforecast){
   all=data.frame(exogen,data)
-  fore<-matrix(0,nrow=dim(data)[2]+dim(exogen)[2],ncol=horizon+1)
-  fore[,1]<-t(all[dim(all)[1],])
-  fore[1:dim(exogen)[2],-1]<-rw(horizon,as.matrix(exogen[dim(exogen)[1],]))
+  fore<-matrix(0,nrow=dim(data)[2]+dim(exogen)[2],ncol=horizon+preforecast*4)
+  fore[,1:(preforecast*4)]<-t(all[(dim(all)[1]-preforecast*4+1):dim(all)[1],])
+  fore[1:dim(exogen)[2],-c(1:(preforecast*4))]<-rw(horizon,as.matrix(exogen[dim(exogen)[1],]))
   lv<-lassovar(dat=all,lags=lag, ic="BIC")
   coeff<-as.matrix(t(lv$coefficients[-1,]),26,26)
   intercept<-as.matrix(lv$coefficients[1,],26,1)
-  for (i in 2:(horizon+1)){
+  for (i in (preforecast*4+1):(horizon+preforecast*4)){
     fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff%*%fore[,i-1])[-dim(exogen)[2]]
   }
   rownames(fore)<-names(all)
@@ -113,7 +114,7 @@ colnames(exo)<-'POILU'
 end<-subset(data[,-which(names(data) %in% c("POILU"))])
 
 
-IRF<-conditional(exo,end,1,12)
+IRF<-conditional(exo,end,1,12,4)
 IRF<-data.frame(IRF)
 
 var1<-IRF[,1:5]
@@ -122,11 +123,13 @@ var3<-IRF[,11:15]
 var4<-IRF[,16:20]
 var5<-IRF[,21:26]
 
-var1$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var2$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var3$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var4$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var5$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
+time<-seq(as.Date("2010/01/01"), as.Date("2016/12/31"), by = "quarter")
+
+var1$time<-time
+var2$time<-time
+var3$time<-time
+var4$time<-time
+var5$time<-time
 
 mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
 mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
@@ -146,7 +149,7 @@ ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="fr
 ### inflation forecast with replication of rw
 
 iter<-100
-HICPpred<-matrix(0,13,iter)
+HICPpred<-matrix(0,28,iter)
 for (i in 1:iter){
   HICPpred[,i]<-matrix(conditional(exo,end,1,12)[,"HICP"])
 }
@@ -184,13 +187,13 @@ end<-subset(data[,-which(names(data) %in% c("POILU"))])
 
 
 iter<-100
-HICPpred<-matrix(0,13,iter)
+HICPpred<-matrix(0,28,iter)
 for (i in 1:iter){
   HICPpred[,i]<-matrix(conditional(exo,end,1,12)[,"inflation"])
 }
 HICPpred
 HICPpred<-data.frame(HICPpred)
-HICPpred$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
+HICPpred$time<-seq(as.Date("2010/01/01"), as.Date("2016/12/31"), by = "quarter")
 
 var <- melt(HICPpred,  id = 'time', variable.name = 'series')
 
