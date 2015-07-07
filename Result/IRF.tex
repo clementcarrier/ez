@@ -164,7 +164,7 @@ The options so far:
 \end{alltt}
 
 
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: MSBVAR\\\#\# \#\#\\\#\# \#\# MSBVAR Package v.0.9-2\\\#\# \#\# Build date:\ \ Tue Jul\ \ 7 12:43:19 2015 \\\#\# \#\# Copyright (C) 2005-2015, Patrick T. Brandt\\\#\# \#\# Written by Patrick T. Brandt\\\#\# \#\#\\\#\# \#\# Support provided by the U.S. National Science Foundation\\\#\# \#\# (Grants SES-0351179, SES-0351205, SES-0540816, and SES-0921051)\\\#\# \#\#\\\#\# \\\#\# \\\#\# Attaching package: 'MSBVAR'\\\#\# \\\#\# The following object is masked from 'package:urca':\\\#\# \\\#\#\ \ \ \  summary}}\end{kframe}
+{\ttfamily\noindent\itshape\color{messagecolor}{\#\# Loading required package: MSBVAR\\\#\# \#\#\\\#\# \#\# MSBVAR Package v.0.9-2\\\#\# \#\# Build date:\ \ Tue Jul\ \ 7 16:17:08 2015 \\\#\# \#\# Copyright (C) 2005-2015, Patrick T. Brandt\\\#\# \#\# Written by Patrick T. Brandt\\\#\# \#\#\\\#\# \#\# Support provided by the U.S. National Science Foundation\\\#\# \#\# (Grants SES-0351179, SES-0351205, SES-0540816, and SES-0921051)\\\#\# \#\#\\\#\# \\\#\# \\\#\# Attaching package: 'MSBVAR'\\\#\# \\\#\# The following object is masked from 'package:urca':\\\#\# \\\#\#\ \ \ \  summary}}\end{kframe}
 \end{knitrout}
 
 \begin{knitrout}
@@ -227,9 +227,9 @@ Function to generate RW for exogonous variables. I fixed the variance of the sch
   \hlstd{y}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],t)}
   \hlstd{y[,}\hlnum{1}\hlstd{]}\hlkwb{<-}\hlkwd{t}\hlstd{(x)}
   \hlkwa{for}\hlstd{(i} \hlkwa{in} \hlnum{2}\hlopt{:}\hlstd{t)\{}
-    \hlstd{y[,i]} \hlkwb{<-} \hlstd{y[,i}\hlopt{-}\hlnum{1}\hlstd{]} \hlopt{+} \hlkwd{matrix}\hlstd{(}\hlkwd{rnorm}\hlstd{(}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],}\hlnum{0}\hlstd{,}\hlnum{0.4942424}\hlstd{),}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],}\hlnum{1}\hlstd{)}
+    \hlstd{y[,i]} \hlkwb{<-} \hlstd{y[,i}\hlopt{-}\hlnum{1}\hlstd{]} \hlopt{+} \hlkwd{matrix}\hlstd{(}\hlkwd{rnorm}\hlstd{(}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],}\hlnum{0}\hlstd{,}\hlnum{0.5}\hlstd{),}\hlkwd{dim}\hlstd{(x)[}\hlnum{2}\hlstd{],}\hlnum{1}\hlstd{)}
   \hlstd{\}}
-  \hlkwd{return}\hlstd{(y)}
+  \hlkwd{return}\hlstd{(y[,}\hlopt{-}\hlnum{1}\hlstd{])}
 \hlstd{\}}
 \end{alltt}
 \end{kframe}
@@ -241,15 +241,15 @@ Function to compute IRF to RW evolution of exogeneous variables
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlstd{conditional}\hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{exogen}\hlstd{,}\hlkwc{data}\hlstd{,}\hlkwc{lag}\hlstd{,}\hlkwc{horizon}\hlstd{)\{}
+\hlstd{conditional}\hlkwb{<-}\hlkwa{function}\hlstd{(}\hlkwc{exogen}\hlstd{,}\hlkwc{data}\hlstd{,}\hlkwc{lag}\hlstd{,}\hlkwc{horizon}\hlstd{,}\hlkwc{preforecast}\hlstd{)\{}
   \hlstd{all}\hlkwb{=}\hlkwd{data.frame}\hlstd{(exogen,data)}
-  \hlstd{fore}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwc{nrow}\hlstd{=}\hlkwd{dim}\hlstd{(data)[}\hlnum{2}\hlstd{]}\hlopt{+}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],}\hlkwc{ncol}\hlstd{=horizon}\hlopt{+}\hlnum{1}\hlstd{)}
-  \hlstd{fore[,}\hlnum{1}\hlstd{]}\hlkwb{<-}\hlkwd{t}\hlstd{(all[}\hlkwd{dim}\hlstd{(all)[}\hlnum{1}\hlstd{],])}
-  \hlstd{fore[}\hlnum{1}\hlopt{:}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],}\hlopt{-}\hlnum{1}\hlstd{]}\hlkwb{<-}\hlkwd{rw}\hlstd{(horizon,}\hlkwd{as.matrix}\hlstd{(exogen[}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{1}\hlstd{],]))}
+  \hlstd{fore}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,}\hlkwc{nrow}\hlstd{=}\hlkwd{dim}\hlstd{(data)[}\hlnum{2}\hlstd{]}\hlopt{+}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],}\hlkwc{ncol}\hlstd{=horizon}\hlopt{+}\hlstd{preforecast)}
+  \hlstd{fore[,}\hlnum{1}\hlopt{:}\hlstd{(preforecast)]}\hlkwb{<-}\hlkwd{t}\hlstd{(all[(}\hlkwd{dim}\hlstd{(all)[}\hlnum{1}\hlstd{]}\hlopt{-}\hlstd{preforecast}\hlopt{+}\hlnum{1}\hlstd{)}\hlopt{:}\hlkwd{dim}\hlstd{(all)[}\hlnum{1}\hlstd{],])}
+  \hlstd{fore[}\hlnum{1}\hlopt{:}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],}\hlopt{-}\hlkwd{c}\hlstd{(}\hlnum{1}\hlopt{:}\hlstd{(preforecast))]}\hlkwb{<-}\hlkwd{rw}\hlstd{(horizon}\hlopt{+}\hlnum{1}\hlstd{,}\hlkwd{as.matrix}\hlstd{(exogen[}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{1}\hlstd{],]))}
   \hlstd{lv}\hlkwb{<-}\hlkwd{lassovar}\hlstd{(}\hlkwc{dat}\hlstd{=all,}\hlkwc{lags}\hlstd{=lag,} \hlkwc{ic}\hlstd{=}\hlstr{"BIC"}\hlstd{)}
   \hlstd{coeff}\hlkwb{<-}\hlkwd{as.matrix}\hlstd{(}\hlkwd{t}\hlstd{(lv}\hlopt{$}\hlstd{coefficients[}\hlopt{-}\hlnum{1}\hlstd{,]),}\hlnum{26}\hlstd{,}\hlnum{26}\hlstd{)}
   \hlstd{intercept}\hlkwb{<-}\hlkwd{as.matrix}\hlstd{(lv}\hlopt{$}\hlstd{coefficients[}\hlnum{1}\hlstd{,],}\hlnum{26}\hlstd{,}\hlnum{1}\hlstd{)}
-  \hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{2}\hlopt{:}\hlstd{(horizon}\hlopt{+}\hlnum{1}\hlstd{))\{}
+  \hlkwa{for} \hlstd{(i} \hlkwa{in} \hlstd{(preforecast}\hlopt{+}\hlnum{1}\hlstd{)}\hlopt{:}\hlstd{(horizon}\hlopt{+}\hlstd{preforecast))\{}
     \hlstd{fore[}\hlopt{-}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],i]}\hlkwb{<-}\hlstd{intercept[}\hlopt{-}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{],]}\hlopt{+}\hlstd{(coeff}\hlopt{%*%}\hlstd{fore[,i}\hlopt{-}\hlnum{1}\hlstd{])[}\hlopt{-}\hlkwd{dim}\hlstd{(exogen)[}\hlnum{2}\hlstd{]]}
   \hlstd{\}}
   \hlkwd{rownames}\hlstd{(fore)}\hlkwb{<-}\hlkwd{names}\hlstd{(all)}
@@ -304,9 +304,12 @@ I iterate 100 random walk scenario for oil price, and I keep the prediction of i
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlstd{iter}\hlkwb{<-}\hlnum{100}
-\hlstd{HICPpred}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,}\hlnum{13}\hlstd{,iter)}
+\hlstd{preforecast}\hlkwb{<-}\hlnum{16}
+\hlstd{horizon}\hlkwb{<-}\hlnum{12}
+
+\hlstd{HICPpred}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlnum{0}\hlstd{,horizon}\hlopt{+}\hlstd{preforecast,iter)}
 \hlkwa{for} \hlstd{(i} \hlkwa{in} \hlnum{1}\hlopt{:}\hlstd{iter)\{}
-  \hlstd{HICPpred[,i]}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlkwd{conditional}\hlstd{(exo,end,}\hlnum{1}\hlstd{,}\hlnum{12}\hlstd{)[,}\hlstr{"inflation"}\hlstd{])}
+  \hlstd{HICPpred[,i]}\hlkwb{<-}\hlkwd{matrix}\hlstd{(}\hlkwd{conditional}\hlstd{(exo,end,}\hlnum{1}\hlstd{,horizon,preforecast)[,}\hlstr{"inflation"}\hlstd{])}
 \hlstd{\}}
 \end{alltt}
 \end{kframe}
@@ -318,13 +321,11 @@ I iterate 100 random walk scenario for oil price, and I keep the prediction of i
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlstd{HICPpred}\hlkwb{<-}\hlkwd{data.frame}\hlstd{(HICPpred)}
-\hlstd{HICPpred}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2014/10/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2017/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
+\hlstd{HICPpred}\hlopt{$}\hlstd{time}\hlkwb{<-}\hlkwd{seq}\hlstd{(}\hlkwd{as.Date}\hlstd{(}\hlstr{"2010/01/01"}\hlstd{),} \hlkwd{as.Date}\hlstd{(}\hlstr{"2016/12/31"}\hlstd{),} \hlkwc{by} \hlstd{=} \hlstr{"quarter"}\hlstd{)}
 \hlstd{var} \hlkwb{<-} \hlkwd{melt}\hlstd{(HICPpred,}  \hlkwc{id} \hlstd{=} \hlstr{'time'}\hlstd{,} \hlkwc{variable.name} \hlstd{=} \hlstr{'series'}\hlstd{)}
-\hlkwd{ggplot}\hlstd{(var,} \hlkwd{aes}\hlstd{(time,value,} \hlkwc{col}\hlstd{=series))} \hlopt{+} \hlkwd{geom_point}\hlstd{()} \hlopt{+} \hlkwd{stat_smooth}\hlstd{()}
+\hlkwd{ggplot}\hlstd{(var,} \hlkwd{aes}\hlstd{(time,value,} \hlkwc{col}\hlstd{=series))} \hlopt{+} \hlkwd{geom_point}\hlstd{()}
 \end{alltt}
-
-
-{\ttfamily\noindent\itshape\color{messagecolor}{\#\# geom\_smooth: method="{}auto"{} and size of largest group is <1000, so using loess. Use 'method = x' to change the smoothing method.}}\end{kframe}
+\end{kframe}
 \includegraphics[width=\maxwidth]{figure/unnamed-chunk-7-1} 
 
 \end{knitrout}

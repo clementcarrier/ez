@@ -137,9 +137,9 @@ rw<-function(t,x){
   y<-matrix(0,dim(x)[2],t)
   y[,1]<-t(x)
   for(i in 2:t){
-    y[,i] <- y[,i-1] + matrix(rnorm(dim(x)[2],0,0.4942424),dim(x)[2],1)
+    y[,i] <- y[,i-1] + matrix(rnorm(dim(x)[2],0,0.5),dim(x)[2],1)
   }
-  return(y)
+  return(y[,-1])
 }
 @
 
@@ -147,15 +147,15 @@ rw<-function(t,x){
 
 Function to compute IRF to RW evolution of exogeneous variables
 <<>>=
-conditional<-function(exogen,data,lag,horizon){
+conditional<-function(exogen,data,lag,horizon,preforecast){
   all=data.frame(exogen,data)
-  fore<-matrix(0,nrow=dim(data)[2]+dim(exogen)[2],ncol=horizon+1)
-  fore[,1]<-t(all[dim(all)[1],])
-  fore[1:dim(exogen)[2],-1]<-rw(horizon,as.matrix(exogen[dim(exogen)[1],]))
+  fore<-matrix(0,nrow=dim(data)[2]+dim(exogen)[2],ncol=horizon+preforecast)
+  fore[,1:(preforecast)]<-t(all[(dim(all)[1]-preforecast+1):dim(all)[1],])
+  fore[1:dim(exogen)[2],-c(1:(preforecast))]<-rw(horizon+1,as.matrix(exogen[dim(exogen)[1],]))
   lv<-lassovar(dat=all,lags=lag, ic="BIC")
   coeff<-as.matrix(t(lv$coefficients[-1,]),26,26)
   intercept<-as.matrix(lv$coefficients[1,],26,1)
-  for (i in 2:(horizon+1)){
+  for (i in (preforecast+1):(horizon+preforecast)){
     fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff%*%fore[,i-1])[-dim(exogen)[2]]
   }
   rownames(fore)<-names(all)
@@ -198,9 +198,12 @@ I iterate 100 random walk scenario for oil price, and I keep the prediction of i
 
 <<>>=
 iter<-100
-HICPpred<-matrix(0,13,iter)
+preforecast<-16
+horizon<-12
+
+HICPpred<-matrix(0,horizon+preforecast,iter)
 for (i in 1:iter){
-  HICPpred[,i]<-matrix(conditional(exo,end,1,12)[,"inflation"])
+  HICPpred[,i]<-matrix(conditional(exo,end,1,horizon,preforecast)[,"inflation"])
 }
 @
 
@@ -208,9 +211,9 @@ for (i in 1:iter){
 
 <<>>=
 HICPpred<-data.frame(HICPpred)
-HICPpred$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
+HICPpred$time<-seq(as.Date("2010/01/01"), as.Date("2016/12/31"), by = "quarter")
 var <- melt(HICPpred,  id = 'time', variable.name = 'series')
-ggplot(var, aes(time,value, col=series)) + geom_point() + stat_smooth()
+ggplot(var, aes(time,value, col=series)) + geom_point() 
 @
 
 
