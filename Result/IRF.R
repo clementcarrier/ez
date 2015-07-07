@@ -163,15 +163,14 @@ ggplot(var, aes(time,value, col=series)) + geom_point() + stat_smooth()
 
 
 # inflation rate
-HICP<-vardataframe[116:180,6]
+HICP<-vardataframe[113:180,6]
 
 inflation<-NULL
-a<-NULL
-for (i in seq(from=1,to=length(HICP),by=1)){
-  inflation[i]=-1+exp(HICP[i])/exp(HICP[i-1])
+for (i in seq(from=5,to=length(HICP),by=1)){
+  inflation[i]=-1+exp(HICP[i])/exp(HICP[i-4])
 }
 inflation
-inflation<-inflation[-1]*100
+inflation<-inflation[5:68]*100
 
 data$HICP<-NULL
 data$inflation<-inflation
