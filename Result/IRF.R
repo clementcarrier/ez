@@ -79,7 +79,7 @@ colnames(exo)<-c('DJES')
 end<-subset(data[,-which(names(data) %in% c("DJES"))])
 
 
-iter<-100
+iter<-1
 preforecast<-16
 horizon<-28
 
@@ -100,8 +100,59 @@ plot(inflation)
 
 
 
+#################  Test du modèle sur 2010-2014 ############
+
+data<-subset(vardataframe[117:164,])
+datats<-ts(data,frequency=4, start=1998)
+
+HICP<-vardataframe[113:164,6]
+
+inflation2<-NULL
+for (i in seq(from=5,to=length(HICP),by=1)){
+  inflation2[i]=-1+exp(HICP[i])/exp(HICP[i-4])
+}
+inflation2<-inflation2[5:52]*100
+
+data$HICP<-NULL
+data$inflation2<-inflation2
+
+exo<-as.matrix(data[,c("POILU")])
+colnames(exo)<-c('POILU')
+end<-subset(data[,-which(names(data) %in% c("POILU"))])
 
 
+iter<-20
+preforecast<-16
+horizon<-16
+
+HICPpred<-matrix(0,horizon+preforecast,iter)
+for (i in 1:iter){
+  HICPpred[,i]<-matrix(conditional(exo,end,1,horizon,preforecast)[,"inflation2"])
+}
+
+HICPpre<-data.frame(HICPpred)
+HICPpre$time<-seq(as.Date("2006/01/01"), as.Date("2013/12/31"), by = "quarter")
+var2 <- melt(HICPpre,  id = 'time', variable.name = 'series')
+
+
+inflationtrue<-data.frame(inflation[33:64])
+names(inflationtrue)<-'inflationtrue'
+inflationtrue$time<-seq(as.Date("2006/01/01"), as.Date("2013/12/31"), by = "quarter")
+var3 <- melt(inflationtrue,  id = 'time', variable.name = 'series')
+
+ggplot(var2, aes(time,value, col=series)) + geom_point() + geom_line(linetype="solid")
+ggplot(var3, aes(time,value, col=series)) + geom_point() + geom_line(linetype="solid")
+
+# Calcul RMSE
+HICPpred
+
+library(base)
+help(rowMeans)
+estimateur<-as.matrix(.rowMeans(HICPpred, m=32,n=20))[17:32]
+true<-as.matrix(inflation[49:64])
+ecart<-true-estimateur
+sumecart<-t(ecart)%*%ecart
+RMSE<-sumecart/length(ecart)
 
 ######################################################
 exo<-as.matrix(data[,c("POILU")])
@@ -173,31 +224,3 @@ forecast<-function(data,lag,horizon){
 IRF<-forecast(data,1,12)
 colnames(IRF)<-names(data)
 IRF<-data.frame(IRF)
-
-var1<-IRF[,1:5]
-var2<-IRF[,6:10]
-var3<-IRF[,11:15]
-var4<-IRF[,16:20]
-var5<-IRF[,21:26]
-
-var1$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var2$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var3$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var4$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-var5$time<-seq(as.Date("2014/10/01"), as.Date("2017/12/31"), by = "quarter")
-
-mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
-mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
-mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
-mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
-mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
-
-ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-
-
-
-
