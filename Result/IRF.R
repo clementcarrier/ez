@@ -23,7 +23,7 @@ datats<-ts(data,frequency=4, start=1998)
 
 # generate RW exogonous variables
 
-library(base)
+library(MASS)
 
 #la matrice d'entrée est une matrice avec en ligne les périodes et en colonnes les variables
 
@@ -169,10 +169,14 @@ exo<-as.matrix(data[,c("POILU")])
 colnames(exo)<-c('POILU')
 end<-subset(data[,-which(names(data) %in% c("POILU"))])
 
+exo<-as.matrix(data)
+end=NULL
 
 iter<-20
 preforecast<-16
 horizon<-16
+
+
 
 HICPpred<-matrix(0,horizon+preforecast,iter)
 for (i in 1:iter){
@@ -255,53 +259,5 @@ forecast<-function(data,lag,horizon,choc){
   }
   return(t(fore))
 }
-
-
-
-
-forecast<-function(data,lag,horizon){
-  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+1)
-  fore[,1]<-t(data[dim(data)[1],])
-  lv<-lassovar(dat=data,lags=lag)
-  coeff<-as.matrix(t(lv$coefficients[-1,]),26,26)
-  intercept<-as.matrix(lv$coefficients[1,],26,1)
-  for (i in 2:(horizon+1)){
-    fore[,i]<-intercept+coeff%*%fore[,i-1]
-  }
-  rownames(fore)<-names(data)
-  return(t(fore))
-}
-
-IRF<-forecast(data,1,12)
-colnames(IRF)<-names(data)
-IRF<-data.frame(IRF)
-
-var1<-IRF[,1:5]
-var2<-IRF[,6:10]
-var3<-IRF[,11:15]
-var4<-IRF[,16:20]
-var5<-IRF[,21:26]
-
-time<-seq(as.Date("2014/01/01"), as.Date("2017/01/01"), by = "quarter")
-
-var1$time<-time
-var2$time<-time
-var3$time<-time
-var4$time<-time
-var5$time<-time
-
-mvar1 <- melt(var1,  id = 'time', variable.name = 'series')
-mvar2 <- melt(var2,  id = 'time', variable.name = 'series')
-mvar3 <- melt(var3,  id = 'time', variable.name = 'series')
-mvar4 <- melt(var4,  id = 'time', variable.name = 'series')
-mvar5 <- melt(var5,  id = 'time', variable.name = 'series')
-
-ggplot(mvar1, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar2, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar3, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar4, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-ggplot(mvar5, aes(time,value)) + geom_line() + facet_grid(series ~ . ,scales="free")
-
-
-
+#
 

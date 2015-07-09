@@ -1,0 +1,316 @@
+\documentclass[11pt,oneside, a4paper]{amsart}
+\usepackage{natbib}
+
+\usepackage{amsbsy,amsmath}
+\usepackage{amssymb,amsfonts}
+\usepackage{bbm}%give 1 with dbl vertical bar 
+\usepackage{booktabs,url,enumerate}
+\usepackage{color,xcolor,colortbl}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{rotating,graphicx,lscape}
+\usepackage{commath}
+\usetikzlibrary{arrows,positioning} 
+\usepackage[hypcap]{caption}
+\newcommand{\sgn}{\mathrm{sign}}
+\usepackage{setspace}
+
+% bold rows
+\usepackage{array}
+\newcolumntype{$}{>{\global\let\currentrowstyle\relax}}
+\newcolumntype{^}{>{\currentrowstyle}}
+\newcommand{\rowstyle}[1]{\gdef\currentrowstyle{#1}%
+  #1\ignorespaces
+}
+
+% Invisible table columns!
+\newcolumntype{H}{>{\setbox0=\hbox\bgroup}c<{\egroup}@{}}% Properly placed sideways table with asmart class. 
+
+\setlength\rotFPtop{0pt plus 1fil} 
+
+
+\usepackage[top=1.5cm, bottom=1.5cm, left=3.0cm, right=3.0cm]{geometry}
+
+\DeclareMathOperator{\Med}{\mathbb{M}ed}
+\DeclareMathOperator{\Mean}{\mathbb{M}ean}
+\DeclareMathOperator{\Cov}{\mathbb{C}ov}
+\DeclareMathOperator{\Var}{\mathbb{V}ar}
+\DeclareMathOperator{\E}{\mathbb{E}}
+\DeclareMathOperator{\nid}{NID}
+\DeclareMathOperator{\N}{\mathcal{N}}
+\DeclareMathOperator{\corr}{corr}
+\DeclareMathOperator{\diag}{diag}
+\onehalfspace
+
+
+\definecolor{LightRed}{rgb}{1,.88,.88}
+\definecolor{LightBlue}{rgb}{.88,.88,1}
+\definecolor{LightGreen}{rgb}{.88,1,.88}
+
+\newtheorem{theorem}{Theorem}
+\begin{document}
+
+  
+\title{IRF}   
+\author{Clément Carrier}
+\date{\today}
+\maketitle
+
+
+\section*{Forecast performance}
+
+In this section, using a sample from Q1 1998 to Q4 2009, I forecast HICP from Q1 2010 to Q4 2013 with several models. These models difer thanks to the number of lag used, if they are adaptive or not. \\
+
+I plot the results and give the RMSE of these forecasts. \\
+
+Here is the R code : 
+
+
+<<>>=
+library(knitr); opts_chunk$set(message=FALSE)
+@
+
+<<package>>=
+require(lassovar)
+require(ggplot2)
+require(reshape2)
+require(urca)
+require(MSBVAR)
+library(xtable)
+@
+
+
+<<Function used>>=
+forecast2<-function(data,lag,horizon,preforecast){
+  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
+  fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
+  lv<-lassovar(dat=data,lags=lag)
+  intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
+  if(lag==1){
+    coeff<-as.matrix(t(lv$coefficients[-1,]),dim(data)[2],dim(data)[2])
+    for (i in (preforecast+1):(horizon+preforecast)){
+      fore[,i]<-intercept+coeff%*%fore[,i-1]
+    }
+  } else {
+    if(lag==2){
+      coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),
+                        dim(data)[2],dim(data)[2])
+      coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                        dim(data)[2],dim(data)[2])
+      for (i in (preforecast+1):(horizon+preforecast)){
+        fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]
+      }
+    } else {
+      if(lag==3){
+        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        for (i in (preforecast+1):(horizon+preforecast)){
+          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+
+            coeff3%*%fore[,i-3]
+        }
+      }
+      else {
+        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff4<-as.matrix(t(lv$coefficients[(3*dim(data)[2]+2):(4*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        for (i in (preforecast+1):(horizon+preforecast)){
+          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+
+            coeff3%*%fore[,i-3]+coeff4%*%fore[,i-4]
+        }
+      }
+    }
+  }
+  rownames(fore)<-names(data)
+  return(t(fore))
+}
+
+
+
+forecast2adaptlasso<-function(data,lag,horizon,preforecast){
+  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
+  fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
+  lv<-lassovar(dat=data,lags=lag,adaptive='lasso')
+  intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
+  if(lag==1){
+    coeff<-as.matrix(t(lv$coefficients[-1,]),dim(data)[2],dim(data)[2])
+    for (i in (preforecast+1):(horizon+preforecast)){
+      fore[,i]<-intercept+coeff%*%fore[,i-1]
+    }
+  } else {
+    if(lag==2){
+      coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),
+                        dim(data)[2],dim(data)[2])
+      coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                        dim(data)[2],dim(data)[2])
+      for (i in (preforecast+1):(horizon+preforecast)){
+        fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]
+      }
+    } else {
+      if(lag==3){
+        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        for (i in (preforecast+1):(horizon+preforecast)){
+          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+
+            coeff3%*%fore[,i-3]
+        }
+      }
+      else {
+        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff4<-as.matrix(t(lv$coefficients[(3*dim(data)[2]+2):(4*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        for (i in (preforecast+1):(horizon+preforecast)){
+          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+
+            coeff3%*%fore[,i-3]+coeff4%*%fore[,i-4]
+        }
+      }
+    }
+  }
+  rownames(fore)<-names(data)
+  return(t(fore))
+}
+
+forecast2adaptridge<-function(data,lag,horizon,preforecast){
+  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
+  fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
+  lv<-lassovar(dat=data,lags=lag,adaptive='ridge')
+  intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
+  if(lag==1){
+    coeff<-as.matrix(t(lv$coefficients[-1,]),dim(data)[2],dim(data)[2])
+    for (i in (preforecast+1):(horizon+preforecast)){
+      fore[,i]<-intercept+coeff%*%fore[,i-1]
+    }
+  } else {
+    if(lag==2){
+      coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),
+                        dim(data)[2],dim(data)[2])
+      coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                        dim(data)[2],dim(data)[2])
+      for (i in (preforecast+1):(horizon+preforecast)){
+        fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]
+      }
+    } else {
+      if(lag==3){
+        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],
+                          dim(data)[2])
+        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        for (i in (preforecast+1):(horizon+preforecast)){
+          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]
+        }
+      }
+      else {
+        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        coeff4<-as.matrix(t(lv$coefficients[(3*dim(data)[2]+2):(4*dim(data)[2]+1),]),
+                          dim(data)[2],dim(data)[2])
+        for (i in (preforecast+1):(horizon+preforecast)){
+          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+
+            coeff3%*%fore[,i-3]+coeff4%*%fore[,i-4]
+        }
+      }
+    }
+  }
+  rownames(fore)<-names(data)
+  return(t(fore))
+}
+
+@
+
+I load and keep the data from Q1 1998 to Q4 2009 :
+
+<<data>>=
+load("vardata2")
+data<-subset(vardataframe[117:164,])
+@
+
+<<>>=
+HICPtrue<-subset(vardataframe[149:180,])["HICP"]
+
+IRFlassolag1<-forecast2(data,1,16,16)[,"HICP"]
+IRFlassolag2<-forecast2(data,2,16,16)[,"HICP"]
+IRFlassolag3<-forecast2(data,3,16,16)[,"HICP"]
+IRFlassoadaptlassolag1<-forecast2adaptlasso(data,1,16,16)[,"HICP"]
+IRFlassoadaptlassolag2<-forecast2adaptlasso(data,2,16,16)[,"HICP"]
+IRFlassoadaptlassolag3<-forecast2adaptlasso(data,3,16,16)[,"HICP"]
+IRFlassoadaptridgelag1<-forecast2adaptridge(data,1,16,16)[,"HICP"]
+IRFlassoadaptridgelag2<-forecast2adaptridge(data,2,16,16)[,"HICP"]
+IRFlassoadaptridgelag3<-forecast2adaptridge(data,3,16,16)[,"HICP"]
+df<-data.frame(HICPtrue,IRFlassolag1,IRFlassolag2,IRFlassolag3,IRFlassoadaptlassolag1,
+               IRFlassoadaptlassolag2,IRFlassoadaptlassolag3,IRFlassoadaptridgelag1,
+               IRFlassoadaptridgelag2,IRFlassoadaptridgelag3)
+
+time<-seq(as.Date("2006/01/01"), as.Date("2013/10/01"), by = "quarter")
+
+df$time<-time
+
+mvar1 <- melt(df,  id = 'time', variable.name = 'series')
+
+ggplot(mvar1, aes(time, value, col=series)) + geom_line() 
+@
+
+
+I compute the RMSE : 
+
+<<>>=
+df2<-df[17:32,]
+RMSE<-NULL
+for (i in 2:(length(df)-1)){
+  RMSE[i]<-as.matrix(t(df2[,1]-df2[,i])%*%(df2[,1]-df2[,i]))/16
+}
+RMSEmodel<-RMSE[-1]
+names(RMSEmodel)<-names(df[2:10])
+@
+
+
+
+<<Code_chunk_Minimal_example, results='asis', echo=FALSE>>=
+dataframe <- data.frame(Model = 1:9,
+                 lag = c("1", "2", "3" , "1", "2", "3","1", "2", "3" ),
+                 adaptive  = c("non", "non", "non" , "lasso",
+                              "lasso","lasso","ridge", "ridge",
+                              "ridge"),
+                 RMSE    = RMSEmodel )
+                 
+
+print(xtable(dataframe, digits=6, caption="blabla", label="Test_table"), 
+      size="footnotesize", #Change size; useful for bigger tables
+      include.rownames=FALSE, #Don't print rownames
+      include.colnames=FALSE, #We create them ourselves
+      caption.placement="top", 
+      hline.after=NULL, #We don't need hline; we use booktabs
+      add.to.row = list(pos = list(-1,nrow(dataframe)),
+                        command = c(paste("\\toprule \n",
+                         "Model & lag & adaptive & RMSE \\\\\n", 
+                          "\\midrule \n"),"\\bottomrule \n")
+                        )
+      )
+@
+
+
+
+
+\end{document}
