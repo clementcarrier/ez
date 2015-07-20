@@ -41,27 +41,30 @@ require(MSBVAR)
 forecast2<-function(data,lag,horizon,preforecast,adap){
   fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
   fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
-  lv<-lassovar(dat=data,lags=lag,adaptive=adap)
+  lv<-lassovar(dat=data,lags=lag,adaptive=adap,trend=TRUE)
   intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
   if(lag==1){
-    coeff<-as.matrix(t(lv$coefficients[-1,]),dim(data)[2],dim(data)[2])
+    coeff<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
+    trend<-as.matrix(lv$coefficients[dim(data)[2]+2,],dim(data)[2],1)
     for (i in (preforecast+1):(horizon+preforecast)){
-      fore[,i]<-intercept+coeff%*%fore[,i-1]
+      fore[,i]<-intercept+trend*(i+dim(data)[1]-preforecast)+coeff%*%fore[,i-1]
     }
   } else {
     if(lag==2){
       coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
       coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
+      trend<-as.matrix(lv$coefficients[2*dim(data)[2]+2,],dim(data)[2],1)
       for (i in (preforecast+1):(horizon+preforecast)){
-        fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]
+        fore[,i]<-intercept+trend*(i+dim(data)[1]-preforecast)+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]
       }
     } else {
       if(lag==3){
         coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
         coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
         coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
+        trend<-as.matrix(lv$coefficients[3*dim(data)[2]+2,],dim(data)[2],1)
         for (i in (preforecast+1):(horizon+preforecast)){
-          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]
+          fore[,i]<-intercept+trend*(i+dim(data)[1]-preforecast)+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]
         }
       }
       else {
@@ -69,8 +72,9 @@ forecast2<-function(data,lag,horizon,preforecast,adap){
         coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
         coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
         coeff4<-as.matrix(t(lv$coefficients[(3*dim(data)[2]+2):(4*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
+        trend<-as.matrix(lv$coefficients[4*dim(data)[2]+2,],dim(data)[2],1)
         for (i in (preforecast+1):(horizon+preforecast)){
-          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]+coeff4%*%fore[,i-4]
+          fore[,i]<-intercept+trend*(i+dim(data)[1]-preforecast)+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]+coeff4%*%fore[,i-4]
         }
       }
     }
@@ -102,15 +106,23 @@ IRFlassoadaptridgelag2<-forecast2(data,2,16,16,"ridge")[,"HICP"]
 IRFlassoadaptridgelag3<-forecast2(data,3,16,16,"ridge")[,"HICP"]
 df<-data.frame(HICPtrue,IRFlassolag1,IRFlassolag2,IRFlassolag3,IRFlassoadaptlassolag1,IRFlassoadaptlassolag2,IRFlassoadaptlassolag3,IRFlassoadaptridgelag1,IRFlassoadaptridgelag2,IRFlassoadaptridgelag3)
 
-
 time<-seq(as.Date("2006/01/01"), as.Date("2013/10/01"), by = "quarter")
-
 df$time<-time
-
 mvar1 <- melt(df,  id = 'time', variable.name = 'series')
-
 ggplot(mvar1, aes(time, value, col=series)) + geom_line() 
 
+
+
+
+## comparison with forecast.lassovar
+
+forecast.lassovar(data,24,16,ic="BIC",lags=1)
+
+help(forecast.lassovar)
+help(forecast)
+
+
+# RMSE 
 df2<-df[17:32,]
 RMSE<-NULL
 for (i in 2:(length(df)-1)){
