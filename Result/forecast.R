@@ -38,10 +38,10 @@ require(MSBVAR)
 #}
 
 
-forecast2<-function(data,lag,horizon,preforecast){
+forecast2<-function(data,lag,horizon,preforecast,adap){
   fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
   fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
-  lv<-lassovar(dat=data,lags=lag)
+  lv<-lassovar(dat=data,lags=lag,adaptive=adap)
   intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
   if(lag==1){
     coeff<-as.matrix(t(lv$coefficients[-1,]),dim(data)[2],dim(data)[2])
@@ -79,89 +79,6 @@ forecast2<-function(data,lag,horizon,preforecast){
   return(t(fore))
 }
 
-
-
-forecast2adaptlasso<-function(data,lag,horizon,preforecast){
-  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
-  fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
-  lv<-lassovar(dat=data,lags=lag,adaptive='lasso')
-  intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
-  if(lag==1){
-    coeff<-as.matrix(t(lv$coefficients[-1,]),dim(data)[2],dim(data)[2])
-    for (i in (preforecast+1):(horizon+preforecast)){
-      fore[,i]<-intercept+coeff%*%fore[,i-1]
-    }
-  } else {
-    if(lag==2){
-      coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-      coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-      for (i in (preforecast+1):(horizon+preforecast)){
-        fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]
-      }
-    } else {
-      if(lag==3){
-        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        for (i in (preforecast+1):(horizon+preforecast)){
-          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]
-        }
-      }
-      else {
-        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff4<-as.matrix(t(lv$coefficients[(3*dim(data)[2]+2):(4*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        for (i in (preforecast+1):(horizon+preforecast)){
-          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]+coeff4%*%fore[,i-4]
-        }
-      }
-    }
-  }
-  rownames(fore)<-names(data)
-  return(t(fore))
-}
-
-forecast2adaptridge<-function(data,lag,horizon,preforecast){
-  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
-  fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
-  lv<-lassovar(dat=data,lags=lag,adaptive='ridge')
-  intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
-  if(lag==1){
-    coeff<-as.matrix(t(lv$coefficients[-1,]),dim(data)[2],dim(data)[2])
-    for (i in (preforecast+1):(horizon+preforecast)){
-      fore[,i]<-intercept+coeff%*%fore[,i-1]
-    }
-  } else {
-    if(lag==2){
-      coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-      coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-      for (i in (preforecast+1):(horizon+preforecast)){
-        fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]
-      }
-    } else {
-      if(lag==3){
-        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        for (i in (preforecast+1):(horizon+preforecast)){
-          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]
-        }
-      }
-      else {
-        coeff1<-as.matrix(t(lv$coefficients[2:(dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff2<-as.matrix(t(lv$coefficients[(dim(data)[2]+2):(2*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff3<-as.matrix(t(lv$coefficients[(2*dim(data)[2]+2):(3*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        coeff4<-as.matrix(t(lv$coefficients[(3*dim(data)[2]+2):(4*dim(data)[2]+1),]),dim(data)[2],dim(data)[2])
-        for (i in (preforecast+1):(horizon+preforecast)){
-          fore[,i]<-intercept+coeff1%*%fore[,i-1]+coeff2%*%fore[,i-2]+coeff3%*%fore[,i-3]+coeff4%*%fore[,i-4]
-        }
-      }
-    }
-  }
-  rownames(fore)<-names(data)
-  return(t(fore))
-}
 
 
 
@@ -174,15 +91,15 @@ data<-subset(vardataframe[117:164,])
 
 HICPtrue<-subset(vardataframe[149:180,])["HICP"]
 
-IRFlassolag1<-forecast2(data,1,16,16)[,"HICP"]
-IRFlassolag2<-forecast2(data,2,16,16)[,"HICP"]
-IRFlassolag3<-forecast2(data,3,16,16)[,"HICP"]
-IRFlassoadaptlassolag1<-forecast2adaptlasso(data,1,16,16)[,"HICP"]
-IRFlassoadaptlassolag2<-forecast2adaptlasso(data,2,16,16)[,"HICP"]
-IRFlassoadaptlassolag3<-forecast2adaptlasso(data,3,16,16)[,"HICP"]
-IRFlassoadaptridgelag1<-forecast2adaptridge(data,1,16,16)[,"HICP"]
-IRFlassoadaptridgelag2<-forecast2adaptridge(data,2,16,16)[,"HICP"]
-IRFlassoadaptridgelag3<-forecast2adaptridge(data,3,16,16)[,"HICP"]
+IRFlassolag1<-forecast2(data,1,16,16,"none")[,"HICP"]
+IRFlassolag2<-forecast2(data,2,16,16,"none")[,"HICP"]
+IRFlassolag3<-forecast2(data,3,16,16,"none")[,"HICP"]
+IRFlassoadaptlassolag1<-forecast2(data,1,16,16,"lasso")[,"HICP"]
+IRFlassoadaptlassolag2<-forecast2(data,2,16,16,"lasso")[,"HICP"]
+IRFlassoadaptlassolag3<-forecast2(data,3,16,16,"lasso")[,"HICP"]
+IRFlassoadaptridgelag1<-forecast2(data,1,16,16,"ridge")[,"HICP"]
+IRFlassoadaptridgelag2<-forecast2(data,2,16,16,"ridge")[,"HICP"]
+IRFlassoadaptridgelag3<-forecast2(data,3,16,16,"ridge")[,"HICP"]
 df<-data.frame(HICPtrue,IRFlassolag1,IRFlassolag2,IRFlassolag3,IRFlassoadaptlassolag1,IRFlassoadaptlassolag2,IRFlassoadaptlassolag3,IRFlassoadaptridgelag1,IRFlassoadaptridgelag2,IRFlassoadaptridgelag3)
 
 
@@ -202,8 +119,3 @@ for (i in 2:(length(df)-1)){
 RMSEmodel<-RMSE[-1]
 
 names(RMSEmodel)<-names(df[2:10])
-
-
-
-
-

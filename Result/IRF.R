@@ -70,37 +70,37 @@ conditional2<-function(exogen,data,lag,horizon,preforecast){
   lv<-lassovar(dat=all,lags=lag, ic="BIC")
   intercept<-as.matrix(lv$coefficients[1,],dim(all)[2],1)
   
-  if(lag==1){
-    coeff<-as.matrix(t(lv$coefficients[-1,]),dim(all)[2],dim(all)[2])
-    for (i in (preforecast+1):(horizon+preforecast)){
-      fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff%*%fore[,i-1])[-dim(exogen)[2]]
-    }
-  } else {
-    if(lag==2){
-      coeff1<-as.matrix(t(lv$coefficients[2:(dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-      coeff2<-as.matrix(t(lv$coefficients[(dim(all)[2]+2):(2*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-      for (i in (preforecast+1):(horizon+preforecast)){
-        fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff1%*%fore[,i-1])[-dim(exogen)[2]]+(coeff2%*%fore[,i-2])[-dim(exogen)[2]]
+    if(lag==1){
+              coeff<-as.matrix(t(lv$coefficients[-1,]),dim(all)[2],dim(all)[2])
+              for (i in (preforecast+1):(horizon+preforecast)){
+              fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff%*%fore[,i-1])[-dim(exogen)[2]]
+              }
+                } else {
+                  if(lag==2){
+                  coeff1<-as.matrix(t(lv$coefficients[2:(dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                  coeff2<-as.matrix(t(lv$coefficients[(dim(all)[2]+2):(2*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                  for (i in (preforecast+1):(horizon+preforecast)){
+                  fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff1%*%fore[,i-1])[-dim(exogen)[2]]+(coeff2%*%fore[,i-2])[-dim(exogen)[2]]
+                      }
+                } else {
+                  if(lag==3){
+                     coeff1<-as.matrix(t(lv$coefficients[2:(dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                     coeff2<-as.matrix(t(lv$coefficients[(dim(all)[2]+2):(2*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                     coeff3<-as.matrix(t(lv$coefficients[(2*dim(all)[2]+2):(3*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                 for (i in (preforecast+1):(horizon+preforecast)){
+                      fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff1%*%fore[,i-1])[-dim(exogen)[2]]+(coeff2%*%fore[,i-2])[-dim(exogen)[2]]+(coeff3%*%fore[,i-3])[-dim(exogen)[2]]
+                 }
+                    }
+                   else {
+                      coeff1<-as.matrix(t(lv$coefficients[2:(dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                      coeff2<-as.matrix(t(lv$coefficients[(dim(all)[2]+2):(2*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                      coeff3<-as.matrix(t(lv$coefficients[(2*dim(all)[2]+2):(3*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                      coeff4<-as.matrix(t(lv$coefficients[(3*dim(all)[2]+2):(4*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
+                      for (i in (preforecast+1):(horizon+preforecast)){
+                      fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff%*%fore[,i-1])[-dim(exogen)[2]]+(coeff2%*%fore[,i-2])[-dim(exogen)[2]]+(coeff3%*%fore[,i-3])[-dim(exogen)[2]]+(coeff4%*%fore[,i-4])[-dim(exogen)[2]]
+                  }
+          }
       }
-    } else {
-      if(lag==3){
-        coeff1<-as.matrix(t(lv$coefficients[2:(dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-        coeff2<-as.matrix(t(lv$coefficients[(dim(all)[2]+2):(2*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-        coeff3<-as.matrix(t(lv$coefficients[(2*dim(all)[2]+2):(3*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-        for (i in (preforecast+1):(horizon+preforecast)){
-          fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff1%*%fore[,i-1])[-dim(exogen)[2]]+(coeff2%*%fore[,i-2])[-dim(exogen)[2]]+(coeff3%*%fore[,i-3])[-dim(exogen)[2]]
-        }
-      }
-      else {
-        coeff1<-as.matrix(t(lv$coefficients[2:(dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-        coeff2<-as.matrix(t(lv$coefficients[(dim(all)[2]+2):(2*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-        coeff3<-as.matrix(t(lv$coefficients[(2*dim(all)[2]+2):(3*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-        coeff4<-as.matrix(t(lv$coefficients[(3*dim(all)[2]+2):(4*dim(all)[2]+1),]),dim(all)[2],dim(all)[2])
-        for (i in (preforecast+1):(horizon+preforecast)){
-          fore[-dim(exogen)[2],i]<-intercept[-dim(exogen)[2],]+(coeff%*%fore[,i-1])[-dim(exogen)[2]]+(coeff2%*%fore[,i-2])[-dim(exogen)[2]]+(coeff3%*%fore[,i-3])[-dim(exogen)[2]]+(coeff4%*%fore[,i-4])[-dim(exogen)[2]]
-        }
-      }
-    }
   }
   rownames(fore)<-names(all)
   return(t(fore))
@@ -130,7 +130,7 @@ end<-subset(data[,-which(names(data) %in% c("POILU"))])
 
 iter<-50
 preforecast<-16
-horizon<-28
+horizon<-20
 
 HICPpred<-matrix(0,horizon+preforecast,iter)
 for (i in 1:iter){
@@ -138,7 +138,7 @@ for (i in 1:iter){
 }
 HICPpred
 HICPpred<-data.frame(HICPpred)
-HICPpred$time<-seq(as.Date("2010/01/01"), as.Date("2020/12/31"), by = "quarter")
+HICPpred$time<-seq(as.Date("2010/01/01"), as.Date("2018/12/01"), by = "quarter")
 
 var <- melt(HICPpred,  id = 'time', variable.name = 'series')
 
