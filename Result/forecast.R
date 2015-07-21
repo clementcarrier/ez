@@ -162,30 +162,30 @@ intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
 coef<-as.matrix(lv$coefficients[2:(lag*dim(data)[2]+1),],lag*dim(data)[2],dim(data)[2])
 trend<-as.matrix(lv$coefficients[lag*dim(data)[2]+2,],dim(data)[2],1)
 
-dim(cbind(t(rev(data[,1])),t(rev(data[,2]))))
+
 
 dim(t(data[,1]))
 M<-rep(0,lag*dim(data)[2])
 
 
 y<-NULL
-M<-as.matrix(rep(0,lag*dim(data)[2]),1,lag*dim(data)[2])
+M<-matrix(0,horizon,lag*dim(data)[2])
 for (i in (preforecast+1):(horizon+preforecast)){
+
   y<-fore[,(i-lag):(i-1)]
   
-  if(lag==1){
-    M[1,1:(lag*dim(data)[2])]<-y
-  }
-  else{
-    M[1,1:(lag*dim(data)[2])]<-y
-    M[1,lag*(dim(data)[2]+1):(lag*dim(data)[2])]<-t(rev(y[,i]))
-  }
-  
-  for (j in 1:lag){
-    
-    
-  }
+  if(lag==1){ 
+    M[i,1:(lag*dim(data)[2])]<-t(rev(y))
+  } else {
+            for (j in 2:lag){
+              M[i,1:(dim(data)[2])]<-t(rev(y[,1]))
+              M[i,((j-1)*dim(data)[2]+1):(j*dim(data)[2])]<-t(rev(y[,j]))
+            }           
+        }
+
 }
+
+
 fore[,i]<-intercept+trend*(i+dim(data)[1]-(preforecast))+coeff%*%fore[,i-1]
 
 
