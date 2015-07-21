@@ -90,6 +90,9 @@ data<-subset(vardataframe[117:164,])
 #datats<-ts(data,frequency=4, start=2006)
 #datats
 
+
+
+
 HICPtrue<-subset(vardataframe[149:180,])["HICP"]
 
 IRFlassolag1<-forecast2(data,1,16,16,"none")[,"HICP"]
@@ -132,3 +135,54 @@ for (i in 2:(length(df)-1)){
 RMSEmodel<-RMSE[-1]
 
 names(RMSEmodel)<-names(df[2:10])
+
+
+
+
+
+
+
+
+help(lassovar)
+lv<-lassovar(data,lags=2,trend=TRUE)
+co<-lv$coeff
+dim(co)
+
+horizon=16
+preforecast=16
+lag=2
+adap="none"
+
+fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
+fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
+
+
+lv<-lassovar(dat=data,lags=lag,adaptive=adap,trend=TRUE)
+intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
+coef<-as.matrix(lv$coefficients[2:(lag*dim(data)[2]+1),],lag*dim(data)[2],dim(data)[2])
+trend<-as.matrix(lv$coefficients[lag*dim(data)[2]+2,],dim(data)[2],1)
+
+
+for (i in (preforecast+1):(horizon+preforecast)){
+  y<-fore[,(i-lag):(i-1)]
+  for (j in 1:lag){
+    M<-rbind(y[,j])
+  }
+}
+fore[,i]<-intercept+trend*(i+dim(data)[1]-(preforecast))+coeff%*%fore[,i-1]
+
+
+forecast2<-function(data,lag,horizon,preforecast,adap){
+  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
+  fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
+  lv<-lassovar(dat=data,lags=lag,adaptive=adap,trend=TRUE)
+  intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
+  coef<-as.matrix(lv$coefficients[2:(lag*dim(data)[2]+1),],lag*dim(data)[2],dim(data)[2])
+  trend<-as.matrix(lv$coefficients[lag*dim(data)[2]+2,],dim(data)[2],1)
+ 
+  for (i in (preforecast+1):(horizon+preforecast)){
+      fore[,i]<-intercept+trend*(i+dim(data)[1]-(preforecast))+coeff%*%fore[,i-1]
+    }
+  rownames(fore)<-names(data)
+  return(t(fore))
+}
