@@ -143,7 +143,7 @@ names(RMSEmodel)<-names(df[2:10])
 
 
 help(lassovar)
-lv<-lassovar(data,lags=2,trend=TRUE)
+lv<-lassovar(data,lags=2,adaptive="none",trend=TRUE)
 co<-lv$coeff
 dim(co)
 
@@ -187,7 +187,9 @@ for (i in (preforecast+1):(horizon+preforecast)){
 fore[,i]<-intercept+trend*(i+dim(data)[1]-(preforecast))+coeff%*%fore[,i-1]
 
 
-
+load("Result/vardata2")
+#data until Q4 2009
+data<-subset(vardataframe[117:164,])
 
 
 new<-function(data,lag,horizon,preforecast,adap){
@@ -205,12 +207,16 @@ for (l in 1:lag){
 }
   fore[,i]<-t(M%*%coef)+intercept+trend*(i+dim(data)[1]-(preforecast))
 }
-  
+
 rownames(fore)<-names(data)
 return(t(fore))
 }
-new(data,1,16,16,"none")
+new(data,2,16,16,"none")
 
+
+
+
+lassovar(dat=data,lags=2,adaptive="none",trend=TRUE)
 
 help(lassovar)
 
