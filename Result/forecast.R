@@ -92,7 +92,6 @@ data<-subset(vardataframe[117:164,])
 
 
 
-
 HICPtrue<-subset(vardataframe[149:180,])["HICP"]
 
 IRFlassolag1<-forecast2(data,1,16,16,"none")[,"HICP"]
@@ -116,7 +115,7 @@ ggplot(mvar1, aes(time, value, col=series)) + geom_line()
 
 ## comparison with forecast.lassovar
 help(lassovar)
-lv<-lassovar(data,lags=1,ic="BIC",horizon=1,trend=TRUE)
+lv<-lassovar(dat=data,lags=1,ic="BIC",horizon=1,trend=TRUE)
 summary(lv)
 forecast.lassovar()
 
@@ -176,17 +175,44 @@ for (i in (preforecast+1):(horizon+preforecast)){
   
   if(lag==1){ 
     M[i,1:(lag*dim(data)[2])]<-t(rev(y))
-  } else {
+    } else {
             for (j in 2:lag){
               M[i,1:(dim(data)[2])]<-t(rev(y[,1]))
               M[i,((j-1)*dim(data)[2]+1):(j*dim(data)[2])]<-t(rev(y[,j]))
             }           
         }
-
 }
 
 
 fore[,i]<-intercept+trend*(i+dim(data)[1]-(preforecast))+coeff%*%fore[,i-1]
+
+
+
+
+
+new<-function(data,lag,horizon,preforecast,adap){
+  fore<-matrix(0,nrow=dim(data)[2],ncol=horizon+preforecast)
+  fore[,1:(preforecast)]<-t(data[(dim(data)[1]-preforecast+1):dim(data)[1],])
+  lv<-lassovar(dat=data,lags=lag,adaptive=adap,trend=TRUE)
+  intercept<-as.matrix(lv$coefficients[1,],dim(data)[2],1)
+  coef<-as.matrix(lv$coefficients[2:(lag*dim(data)[2]+1),],lag*dim(data)[2],dim(data)[2])
+  trend<-as.matrix(lv$coefficients[lag*dim(data)[2]+2,],dim(data)[2],1)
+  
+for (i in (preforecast+1):(horizon+preforecast)){
+M<-NULL
+for (l in 1:lag){
+  M<-c(rev(fore[,(i-l)]),M)
+}
+  fore[,i]<-t(M%*%coef)+intercept+trend*(i+dim(data)[1]-(preforecast))
+}
+  
+rownames(fore)<-names(data)
+return(t(fore))
+}
+new(data,1,16,16,"none")
+
+
+help(lassovar)
 
 
 
