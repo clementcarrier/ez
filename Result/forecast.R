@@ -117,12 +117,9 @@ ggplot(mvar1, aes(time, value, col=series)) + geom_line()
 help(lassovar)
 lv<-lassovar(dat=data,lags=1,ic="BIC",horizon=1,trend=TRUE)
 summary(lv)
-forecast.lassovar()
 
 
 
-help(forecast.lassovar)
-help(lassovar)
 
 
 # RMSE 
@@ -144,8 +141,6 @@ names(RMSEmodel)<-names(df[2:10])
 
 help(lassovar)
 lv<-lassovar(data,lags=2,adaptive="none",trend=TRUE)
-co<-lv$coeff
-dim(co)
 
 horizon=16
 preforecast=16
@@ -183,8 +178,6 @@ for (i in (preforecast+1):(horizon+preforecast)){
         }
 }
 
-
-fore[,i]<-intercept+trend*(i+dim(data)[1]-(preforecast))+coeff%*%fore[,i-1]
 
 
 load("Result/vardata2")
